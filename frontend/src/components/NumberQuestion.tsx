@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type NumberQuestionProps = {
     onAnswer: (answer: number) => void;
@@ -17,6 +18,7 @@ function NumberQuestion({
                             max,
                             unit
                         }: NumberQuestionProps) {
+    const { t } = useTranslation();
     const [value, setValue] = useState<string>("");
     const [error, setError] = useState<string>("");
 
@@ -35,17 +37,17 @@ function NumberQuestion({
 
         // Validation
         if (value === "" || isNaN(numValue)) {
-            setError("Veuillez entrer un nombre valide");
+            setError(t('question.numberMustBeValid'));
             return;
         }
 
         if (min !== undefined && numValue < min) {
-            setError(`La valeur doit être supérieure ou égale à ${min}`);
+            setError(t('question.valueMustBeGreaterOrEqual', { min }));
             return;
         }
 
         if (max !== undefined && numValue > max) {
-            setError(`La valeur doit être inférieure ou égale à ${max}`);
+            setError(t('question.valueMustBeLessOrEqual', { max }));
             return;
         }
 
@@ -67,7 +69,7 @@ function NumberQuestion({
             <p className={`mb-6 text-center text-lg font-bold ${
                 isDark ? 'text-neutral-200' : 'text-neutral-800'
             }`}>
-                Veuillez saisir un nombre
+                {t('question.enterNumber')}
             </p>
 
             {/* Indications min/max */}
@@ -76,10 +78,10 @@ function NumberQuestion({
                     isDark ? 'text-neutral-400' : 'text-neutral-600'
                 }`}>
                     {min !== undefined && max !== undefined
-                        ? `Entre ${min} et ${max}${unit ? ` ${unit}` : ''}`
+                        ? t('question.betweenMinMax', { min, max, unit: unit ? ` ${unit}` : '' })
                         : min !== undefined
-                            ? `Minimum : ${min}${unit ? ` ${unit}` : ''}`
-                            : `Maximum : ${max}${unit ? ` ${unit}` : ''}`
+                            ? t('question.minOnly', { min, unit: unit ? ` ${unit}` : '' })
+                            : t('question.maxOnly', { max, unit: unit ? ` ${unit}` : '' })
                     }
                 </p>
             )}
@@ -135,7 +137,7 @@ function NumberQuestion({
                 }
                 `}
             >
-                Valider
+                {t('question.validate')}
             </button>
         </div>
     );

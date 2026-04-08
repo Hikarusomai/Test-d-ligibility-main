@@ -25,7 +25,7 @@ function Header({
     const [user, setUser] = useState<User | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const { i18n } = useTranslation();
+    const { i18n, t } = useTranslation();
     const currentLang = i18n.language || 'fr';
 
     const toggleLanguage = () => {

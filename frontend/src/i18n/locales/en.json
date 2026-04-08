@@ -152,7 +152,8 @@
     "connexionEnCours": "Logging in...",
     "creationEnCours": "Creating account...",
     "creerMonCompte": "Create my account",
-    "close": "Close"
+    "close": "Close",
+    "notConnected": "You must be logged in to submit the test"
   },
   "chatbot": {
     "welcome": "👋 Hello! I'm your virtual assistant for the Student VISA eligibility questionnaire. How can I help you?",
@@ -205,5 +206,27 @@
   },
   "originCountry": {
     "errorLoading": "Unable to load the question. Please try again."
+  },
+  "question": {
+    "selectOption": "Select an option",
+    "noOption": "No option",
+    "selectMultipleOptions": "Select one or more options",
+    "selectBetween": "Select between {{min}} and {{max}} option(s)",
+    "selectAtLeast": "Select at least {{min}} option(s)",
+    "selectionCount": "{{count}} selected",
+    "other": "Other",
+    "validate": "Validate",
+    "validateCount": "Validate ({{count}})",
+    "enterNumber": "Please enter a number",
+    "numberMustBeValid": "Please enter a valid number",
+    "valueMustBeGreaterOrEqual": "Value must be greater than or equal to {{min}}",
+    "valueMustBeLessOrEqual": "Value must be less than or equal to {{max}}",
+    "enterResponse": "Please enter your answer",
+    "characters": "{{count}} / {{max}} characters",
+    "minCharactersRequired": "Minimum {{min}} characters required",
+    "pressEnter": "Press Enter to validate",
+    "betweenMinMax": "Between {{min}} and {{max}}{{unit}}",
+    "minOnly": "Minimum: {{min}}{{unit}}",
+    "maxOnly": "Maximum: {{max}}{{unit}}"
   }
 }

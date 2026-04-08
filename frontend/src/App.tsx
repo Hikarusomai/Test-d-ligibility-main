@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import OriginCountryPage from './pages/OriginCountryPage';
@@ -30,6 +31,7 @@ function App() {
     const [user, setUser] = useState<{ id: string } | null>(null);
     const [allQuestions, setAllQuestions] = useState<any[]>([]);
     const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
+    const { t } = useTranslation();
 
     const fetchTotalQuestions = async () => {
         try {
@@ -130,7 +132,7 @@ function App() {
             if (currentQuestion && gatingChecks[currentQuestion.key]) {
                 const gatingValue = gatingChecks[currentQuestion.key];
                 if (String(gatingValue).toLowerCase() === String(answer).toLowerCase()) {
-                    setGatingResult({ reason: "Votre profil présente un point bloquant majeur pour l'obtention d'un visa." });
+                    setGatingResult({ reason: t('gating.notEligibleReason') });
                     setCurrentPage('result');
                     setIsProcessingAnswer(false);
                     return;
@@ -186,7 +188,7 @@ function App() {
 
         try {
             if (!apiService.isAuthenticated()) {
-                throw new Error('Vous devez être connecté pour soumettre le test');
+                throw new Error(t('auth.notConnected'));
             }
 
             const questions = allQuestions.length > 0 ? allQuestions : await apiService.getAllQuestions();
@@ -284,7 +286,7 @@ function App() {
                     className={`px-6 py-3 border-2 border-brand-primary text-brand-primary rounded-lg hover:bg-brand-primary/5 transition-colors font-medium ${isDark ? 'bg-transparent' : 'bg-white'
                         }`}
                 >
-                    Retour
+                    {t('common.back')}
                 </button>
             </div>
 
@@ -298,10 +300,10 @@ function App() {
                             </svg>
                         </div>
                         <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
-                            Votre Briefing Personnalisé
+                            {t('result.yourBriefing')}
                         </h1>
                         <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">
-                            Analyse complète de votre éligibilité
+                            {t('result.analysisComplete')}
                         </p>
 
                         <div className="inline-block">
@@ -310,7 +312,7 @@ function App() {
                                 <span className="text-3xl text-neutral-400">/100</span>
                             </div>
                             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                Score d'éligibilité
+                                {t('result.eligibilityScore')}
                             </p>
                         </div>
                     </div>
@@ -320,7 +322,7 @@ function App() {
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    🌍 Pays d'origine
+                                    🌍 {t('result.originCountry')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {data.originCountry}
@@ -328,7 +330,7 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    🎯 Destination
+                                    🎯 {t('result.destination')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {data.destinationCountry}
@@ -336,7 +338,7 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    📊 Questions répondues
+                                    📊 {t('result.questionsAnswered')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {totalQuestions}/{totalQuestions}
@@ -344,7 +346,7 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    📅 Date
+                                    📅 {t('result.date')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {new Date(data.completedAt).toLocaleDateString('fr-FR')}
@@ -359,7 +361,7 @@ function App() {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Analyse de votre profil
+                            {t('result.profileAnalysis')}
                         </h2>
                         <div className="space-y-4">
                             <div className="prose max-w-none text-blue-900 dark:text-blue-100"
@@ -369,7 +371,7 @@ function App() {
 
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
-                            🎯 Actions recommandées
+                            {t('result.recommendedActions')}
                         </h2>
                         <div className="space-y-4">
                             {data.score >= 80 ? (
@@ -378,9 +380,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">✅</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Excellent profil !</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.excellentProfile')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Préparez votre dossier complet et soumettez votre demande de visa dès que possible.
+                                                    {t('result.excellentProfileDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -389,9 +391,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📄</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Documents requis</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.documentsRequired')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Rassemblez tous les documents : diplômes, relevés bancaires, lettre d'admission, certificats de langue.
+                                                    {t('result.documentsRequiredDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -400,9 +402,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🏛️</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Rendez-vous consulaire</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.consularAppointment')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Prenez rendez-vous au consulat dès maintenant pour éviter les délais d'attente.
+                                                    {t('result.consularAppointmentDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -414,9 +416,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🟡</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Profil prometteur</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.promisingProfile')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Améliorez votre niveau de langue (IELTS/TOEFL/DELF) et préparez une lettre de motivation convaincante.
+                                                    {t('result.promisingProfileDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -425,9 +427,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">💰</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Preuves financières</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.financialProof')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Préparez des preuves solides de financement (relevés bancaires, bourses, garants).
+                                                    {t('result.financialProofDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -436,9 +438,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📝</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Projet d'études</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.studyPlan')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Clarifiez votre projet professionnel et sa cohérence avec le programme choisi.
+                                                    {t('result.studyPlanDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -450,9 +452,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🔴</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Dossier à renforcer</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.dossierToStrengthen')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Travaillez sur vos qualifications académiques et linguistiques avant de postuler.
+                                                    {t('result.dossierToStrengthenDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -461,9 +463,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📚</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Formation préparatoire</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.preparatoryTraining')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Suivez une formation préparatoire ou des cours intensifs de langue pour augmenter vos chances.
+                                                    {t('result.preparatoryTrainingDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -472,9 +474,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">👨‍🎓</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Conseiller en orientation</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.advisor')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Consultez un conseiller spécialisé pour construire un dossier solide.
+                                                    {t('result.advisorDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -493,13 +495,13 @@ function App() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Télécharger PDF
+                            {t('common.downloadPdf')}
                         </button>
                         <button
                             onClick={handleRestart}
                             className="px-8 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                         >
-                            Nouveau test
+                            {t('common.newTest')}
                         </button>
                     </div>
                 </div>
@@ -597,7 +599,7 @@ function App() {
                                         </svg>
                                     </div>
                                     <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
-                                        Profil non éligible
+                                        {t('gating.notEligible')}
                                     </h2>
                                     <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">
                                         {gatingResult.reason}
@@ -606,7 +608,7 @@ function App() {
                                         onClick={handleRestart}
                                         className="px-8 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                                     >
-                                        Recommencer le test
+                                        {t('gating.restartTest')}
                                     </button>
                                 </div>
                             ) : (isSubmitting || isProcessingAnswer) ? (
@@ -615,10 +617,10 @@ function App() {
                                     <h2
                                         className="text-3xl font-bold text-neutral-900 dark:text-white mb-4"
                                     >
-                                        {isProcessingAnswer ? "Analyse de votre réponse..." : "Génération de votre briefing..."}
+                                        {isProcessingAnswer ? t('quiz.analyzing') : t('quiz.submitting')}
                                     </h2>
                                     <p className="text-lg text-neutral-600 dark:text-neutral-400">
-                                        Veuillez patienter quelques instants
+                                        {t('quiz.pleaseWait')}
                                     </p>
                                 </div>
                             ) : null}
@@ -643,7 +645,7 @@ function App() {
                                     <h2
                                         className="text-3xl font-bold text-neutral-900 dark:text-white mb-4"
                                     >
-                                        Erreur
+                                        {t('quiz.error')}
                                     </h2>
                                     <p className="text-lg text-red-600 dark:text-red-400 mb-6">
                                         {submitError}
@@ -652,7 +654,7 @@ function App() {
                                         onClick={() => submitTest(answers)}
                                         className="px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                                     >
-                                        Réessayer
+                                        {t('common.retry')}
                                     </button>
                                 </div>
                             )}

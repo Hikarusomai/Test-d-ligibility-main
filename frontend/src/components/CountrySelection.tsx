@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ORIGIN_COUNTRIES, getOriginCountriesByRegion } from '../data/origin-countries';
 
 type CountrySelectionProps = {
@@ -72,6 +73,7 @@ const COUNTRY_POSITIONS: Record<string, { top: number; left: number }> = {
 };
 
 function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionProps) {
+    const { t } = useTranslation();
     const [selectedRegion, setSelectedRegion] = useState<'all' | 'mena' | 'africa' | 'asia'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
@@ -257,7 +259,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                 <svg className="w-16 h-16 mx-auto mb-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p className="text-neutral-500 dark:text-neutral-400">Aucun pays trouvé</p>
+                                <p className="text-neutral-500 dark:text-neutral-400">{t('countrySelection.noResults')}</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -293,7 +295,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                 </div>
 
                 <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-4">
-                    {searchFilteredCountries.length} pays disponible{searchFilteredCountries.length > 1 ? 's' : ''}
+                    {searchFilteredCountries.length > 1 ? t('countrySelection.paysDisponibles', { count: searchFilteredCountries.length }) : t('countrySelection.paysDisponible', { count: searchFilteredCountries.length })}
                 </p>
             </div>
         </div>

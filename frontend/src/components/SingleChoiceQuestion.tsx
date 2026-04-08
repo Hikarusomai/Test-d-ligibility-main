@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type SingleChoiceQuestionProps = {
     options: string[];
@@ -11,6 +12,7 @@ function formatLabel(label: string) {
 }
 
 function SingleChoiceQuestion({ options, onAnswer, isDark = false }: SingleChoiceQuestionProps) {
+    const { t } = useTranslation();
     const [selected, setSelected] = useState<string | null>(null);
 
     const handleClick = (opt: string) => {
@@ -23,7 +25,7 @@ function SingleChoiceQuestion({ options, onAnswer, isDark = false }: SingleChoic
             }`}>
             <p className={`mb-8 text-center text-lg font-bold ${isDark ? 'text-neutral-200' : 'text-neutral-800'
                 }`}>
-                Sélectionnez une option
+                {t('question.selectOption')}
             </p>
             <div className="space-y-6 w-full max-w-xl">
                 {options && options.length > 0 ? (
@@ -51,7 +53,7 @@ function SingleChoiceQuestion({ options, onAnswer, isDark = false }: SingleChoic
                     ))
                 ) : (
                     <p className={`text-center ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                        Aucune option
+                        {t('question.noOption')}
                     </p>
                 )}
             </div>
