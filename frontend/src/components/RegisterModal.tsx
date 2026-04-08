@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 import { apiService } from '../services/api';
 
@@ -22,6 +23,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
 
@@ -38,17 +40,17 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
 
         // Validation
         if (!formData.email || !formData.password) {
-            setError('Email et mot de passe requis');
+            setError(t('auth.emailRequired'));
             return;
         }
 
         if (formData.password.length < 6) {
-            setError('Le mot de passe doit contenir au moins 6 caractères');
+            setError(t('auth.passwordMinLength'));
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setError('Les mots de passe ne correspondent pas');
+            setError(t('auth.passwordsMismatch'));
             return;
         }
 
@@ -83,7 +85,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                 nationality: ''
             });
         } catch (err: any) {
-            setError(err.message || 'Erreur lors de la création du compte');
+            setError(err.message || t('auth.registerError'));
         } finally {
             setIsLoading(false);
         }
@@ -114,7 +116,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                             ? 'hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200'
                             : 'hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900'
                     }`}
-                    aria-label="Fermer"
+                    aria-label={t('auth.close')}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -131,10 +133,10 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                         </div>
                         <div>
                             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                                Créer un compte
+                                {t('auth.registerTitle')}
                             </h2>
                             <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                Rejoignez-nous dès maintenant
+                                {t('auth.registerSubtitle')}
                             </p>
                         </div>
                     </div>
@@ -163,7 +165,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                Prénom
+                                {t('auth.firstNameLabel')}
                             </label>
                             <input
                                 id="firstName"
@@ -187,7 +189,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                Nom
+                                {t('auth.lastNameLabel')}
                             </label>
                             <input
                                 id="lastName"
@@ -213,7 +215,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 isDark ? 'text-neutral-300' : 'text-neutral-700'
                             }`}
                         >
-                            Email <span className="text-red-500">*</span>
+                            {t('auth.emailLabel')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="email"
@@ -240,7 +242,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                Téléphone
+                                {t('auth.phoneLabel')}
                             </label>
                             <input
                                 id="phone"
@@ -264,7 +266,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                Nationalité
+                                {t('auth.nationalityLabel')}
                             </label>
                             <input
                                 id="nationality"
@@ -290,7 +292,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 isDark ? 'text-neutral-300' : 'text-neutral-700'
                             }`}
                         >
-                            Mot de passe <span className="text-red-500">*</span>
+                            {t('auth.passwordLabel')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="password"
@@ -307,7 +309,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                             } focus:outline-none focus:ring-2 focus:ring-brand-primary/20`}
                         />
                         <p className={`mt-1 text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                            Minimum 6 caractères
+                            {t('auth.minChars')}
                         </p>
                     </div>
 
@@ -319,7 +321,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 isDark ? 'text-neutral-300' : 'text-neutral-700'
                             }`}
                         >
-                            Confirmer le mot de passe <span className="text-red-500">*</span>
+                            {t('auth.confirmPasswordLabel')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="confirmPassword"
@@ -348,22 +350,22 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                         {isLoading ? (
                             <>
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                                Création en cours...
+                                {t('auth.creationEnCours')}
                             </>
                         ) : (
-                            'Créer mon compte'
+                            t('auth.creerMonCompte')
                         )}
                     </Button>
 
                     {/* Login link */}
                     <div className={`text-center text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                        Vous avez déjà un compte ?{' '}
+                        {t('auth.hasAccount')}{' '}
                         <button
                             type="button"
                             onClick={onSwitchToLogin}
                             className="text-brand-primary font-semibold hover:underline"
                         >
-                            Se connecter
+                            {t('auth.switchToLogin')}
                         </button>
                     </div>
                 </form>

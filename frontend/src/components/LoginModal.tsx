@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 import { apiService } from '../services/api';
 
@@ -15,6 +16,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
 
@@ -35,7 +37,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
             setEmail('');
             setPassword('');
         } catch (err: any) {
-            setError(err.message || 'Email ou mot de passe incorrect');
+            setError(err.message || t('auth.loginError'));
         } finally {
             setIsLoading(false);
         }
@@ -66,7 +68,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                             ? 'hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200'
                             : 'hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900'
                     }`}
-                    aria-label="Fermer"
+                    aria-label={t('auth.close')}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -83,10 +85,10 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                         </div>
                         <div>
                             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                                Connexion
+                                {t('auth.loginTitle')}
                             </h2>
                             <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                Accédez à votre espace
+                                {t('auth.loginSubtitle')}
                             </p>
                         </div>
                     </div>
@@ -114,7 +116,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                                 isDark ? 'text-neutral-300' : 'text-neutral-700'
                             }`}
                         >
-                            Email
+                            {t('auth.emailLabel')}
                         </label>
                         <input
                             id="email"
@@ -139,7 +141,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                                 isDark ? 'text-neutral-300' : 'text-neutral-700'
                             }`}
                         >
-                            Mot de passe
+                            {t('auth.passwordLabel')}
                         </label>
                         <input
                             id="password"
@@ -162,7 +164,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                             type="button"
                             className="text-sm text-brand-primary hover:underline"
                         >
-                            Mot de passe oublié ?
+                            {t('auth.forgotPassword')}
                         </button>
                     </div>
 
@@ -177,22 +179,22 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                         {isLoading ? (
                             <>
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                                Connexion en cours...
+                                {t('auth.connexionEnCours')}
                             </>
                         ) : (
-                            'Se connecter'
+                            t('auth.loginButton')
                         )}
                     </Button>
 
                     {/* Sign up link */}
                     <div className={`text-center text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                        Pas encore de compte ?{' '}
+                        {t('auth.noAccount')}{' '}
                         <button
                             type="button"
                             onClick={onSwitchToRegister}
                             className="text-brand-primary font-semibold hover:underline"
                         >
-                            Créer un compte
+                            {t('auth.switchToRegister')}
                         </button>
                     </div>
                 </form>
