@@ -6,13 +6,14 @@ import DestinationCountryPage from './pages/DestinationCountryPage';
 import QuestionPage from './pages/QuestionPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import StudentManagementPage from './pages/StudentManagementPage';
 import { apiService } from './services/api';
 import ChatbotWidget from './components/ChatbotWidget';
 import { marked } from 'marked';
 import { ORIGIN_COUNTRIES } from './data/origin-countries';
 import { DESTINATION_COUNTRIES } from './data/destination-countries';
 
-type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'briefing';
+type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'students' | 'briefing';
 
 function App() {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -76,6 +77,10 @@ function App() {
 
     const handleNavigateToAdmin = () => {
         setCurrentPage('admin');
+    };
+
+    const handleNavigateToStudents = () => {
+        setCurrentPage('students');
     };
 
     const handleStartNewTest = async () => {
@@ -257,7 +262,7 @@ function App() {
                         setCurrentPage('destination');
                     }
                 } catch {
-                    setCurrentQuestionOrder(prev => prev - 1);
+                    setCurrentPage('destination');
                 }
             } else {
                 setCurrentPage('destination');
@@ -491,7 +496,7 @@ function App() {
                             className="px-8 py-3 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors font-semibold flex items-center justify-center gap-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             Télécharger PDF
                         </button>
@@ -533,6 +538,14 @@ function App() {
                     <AdminDashboardPage
                         isDark={isDark}
                         onBack={() => setCurrentPage('dashboard')}
+                        onNavigateToStudents={handleNavigateToStudents}
+                    />
+                )}
+
+                {currentPage === 'students' && (
+                    <StudentManagementPage
+                        isDark={isDark}
+                        onBack={() => setCurrentPage('admin')}
                     />
                 )}
 

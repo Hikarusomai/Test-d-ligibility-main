@@ -5,9 +5,10 @@ import Button from '../components/Button';
 type AdminDashboardPageProps = {
     isDark?: boolean;
     onBack: () => void;
+    onNavigateToStudents?: () => void;
 };
 
-function AdminDashboardPage({ isDark = false, onBack }: AdminDashboardPageProps) {
+function AdminDashboardPage({ isDark = false, onBack, onNavigateToStudents }: AdminDashboardPageProps) {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -55,10 +56,18 @@ function AdminDashboardPage({ isDark = false, onBack }: AdminDashboardPageProps)
                             Dashboard Admin
                         </h1>
                         <p className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
-                            Gérez les questions du questionnaire
+                            Gérez les questions et les étudiants
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        {onNavigateToStudents && (
+                            <Button onClick={onNavigateToStudents} variant="secondary">
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                Étudiants
+                            </Button>
+                        )}
                         <Button onClick={() => setIsAddingNew(true)} variant="primary">
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -71,7 +80,7 @@ function AdminDashboardPage({ isDark = false, onBack }: AdminDashboardPageProps)
                     </div>
                 </div>
 
-                {/* Stats */}
+                {/* Quick Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className={`p-6 rounded-xl border-2 ${
                         isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-neutral-200'

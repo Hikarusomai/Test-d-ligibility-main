@@ -9,5 +9,11 @@ export default defineConfig({
       usePolling: true,
     },
     host: true,
+    allowedHosts: [
+      'visa.leadops.website',
+      '.leadops.website',
+      'localhost',
+      '.localhost'
+    ],
   },
 })

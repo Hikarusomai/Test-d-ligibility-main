@@ -8,7 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const publicQuestionRoutes = require('./routes/publicQuestionRoutes');
 const authRoutes = require('./routes/authRoutes');
-const testRoutes = require('./routes/testRoutes'); // 👈 Vérifiez cette ligne
+const testRoutes = require('./routes/testRoutes');
+const adminStudentRoutes = require('./routes/adminStudentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,8 +40,9 @@ app.use(logger);
 app.use('/api/users', userRoutes);
 app.use('/api/questions', publicQuestionRoutes);
 app.use('/api/admin/questions', questionRoutes);
+app.use('/api/admin/students', adminStudentRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/tests', testRoutes); // 👈 Vérifiez cette ligne
+app.use('/api/tests', testRoutes);
 
 // Health check
 app.get('/', (req, res) => {
@@ -50,8 +52,9 @@ app.get('/', (req, res) => {
             users: '/api/users',
             publicQuestions: '/api/questions',
             adminQuestions: '/api/admin/questions',
+            adminStudents: '/api/admin/students',
             auth: '/api/auth',
-            tests: '/api/tests' // 👈 Vérifiez
+            tests: '/api/tests'
         }
     });
 });
@@ -60,6 +63,7 @@ app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT} (CORS FIX VERSION 2)`);
     console.log(`📋 Public questions API: http://localhost:${PORT}/api/questions`);
     console.log(`🔐 Admin questions API: http://localhost:${PORT}/api/admin/questions`);
+    console.log(`👥 Admin students API: http://localhost:${PORT}/api/admin/students`);
     console.log(`🔑 Auth API: http://localhost:${PORT}/api/auth`);
-    console.log(`📝 Tests API: http://localhost:${PORT}/api/tests`); // 👈 Vérifiez
+    console.log(`📝 Tests API: http://localhost:${PORT}/api/tests`);
 });

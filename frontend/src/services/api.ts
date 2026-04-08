@@ -2,14 +2,22 @@
 
 const getApiBaseUrl = () => {
     const envUrl = import.meta.env.VITE_API_URL;
-    if (envUrl) return envUrl;
-    
+
+    // If env variable is set, use it
+    if (envUrl) {
+        console.log('🔧 Using VITE_API_URL from env:', envUrl);
+        return envUrl;
+    }
+
     // Auto-fallback to localhost if we are in dev mode
-    if (window.location.hostname === 'localhost') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('🔧 Dev mode detected, using localhost');
         return 'http://localhost:3000/api';
     }
-    
-    return 'https://hackspice-backend.onrender.com/api';
+
+    // Production: use relative path for same-origin requests
+    console.log('🔧 Production mode, using relative path');
+    return '/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -109,6 +117,57 @@ export interface SavedTest {
     status: string;
     completedAt: string;
     createdAt: string;
+}
+
+// Student Management Interfaces
+export interface Student {
+    id: string;
+    user: {
+        email: string;
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
+        nationality?: string;
+    };
+    originCountry: string;
+    destinationCountry: string;
+    score: number;
+    status: string;
+    completedAt: string;
+    createdAt: string;
+    answers?: Record<string, any>;
+}
+
+export interface StudentsResponse {
+    success: boolean;
+    students: Student[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalResults: number;
+        resultsPerPage: number;
+    };
+}
+
+export interface StudentFilters {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    status?: string;
+    minScore?: number;
+    maxScore?: number;
+    destinationCountry?: string;
+    originCountry?: string;
+    search?: string;
+}
+
+export interface Statistics {
+    totalStudents: number;
+    totalSubmissions: number;
+    statusBreakdown: Record<string, number>;
+    averageScore: number;
+    topDestinations: Array<{ country: string; count: number }>;
 }
 
 class ApiService {
@@ -479,6 +538,133 @@ class ApiService {
 
             return await response.json();
         } catch (error: any) {
+            throw error;
+        }
+    }
+
+    // Student Management Methods
+
+    async getAllStudents(filters?: StudentFilters): Promise<StudentsResponse> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const params = new URLSearchParams();
+            if (filters) {
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null) {
+                        params.append(key, String(value));
+                    }
+                });
+            }
+
+            const url = `${this.baseUrl}/admin/students?${params.toString()}`;
+            console.log('📡 Fetching students with filters:', filters);
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de la récupération des étudiants');
+            }
+
+            const data = await response.json();
+            console.log('✅ Students retrieved:', data.pagination?.totalResults || 0);
+            return data;
+        } catch (error: any) {
+            console.error('❌ Get students error:', error);
+            throw error;
+        }
+    }
+
+    async getStudentById(studentId: string): Promise<{ success: boolean; student: Student }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/admin/students/${studentId}`;
+            console.log('📡 Fetching student:', studentId);
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Étudiant non trouvé');
+
+            const data = await response.json();
+            console.log('✅ Student retrieved');
+            return data;
+        } catch (error: any) {
+            console.error('❌ Get student error:', error);
+            throw error;
+        }
+    }
+
+    async getStatistics(): Promise<{ success: boolean; statistics: Statistics }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/admin/students/stats`;
+            console.log('📡 Fetching statistics');
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de la récupération des statistiques');
+            }
+
+            const data = await response.json();
+            console.log('✅ Statistics retrieved');
+            return data;
+        } catch (error: any) {
+            console.error('❌ Get statistics error:', error);
+            throw error;
+        }
+    }
+
+    async exportStudentsToExcel(filters?: StudentFilters): Promise<void> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const params = new URLSearchParams();
+            if (filters) {
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && key !== 'page' && key !== 'limit') {
+                        params.append(key, String(value));
+                    }
+                });
+            }
+
+            const url = `${this.baseUrl}/admin/students/export/excel?${params.toString()}`;
+            console.log('📊 Exporting students to Excel...');
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de l\'export Excel');
+            }
+
+            // Download file
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `students_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            console.log('✅ Excel export completed');
+        } catch (error: any) {
+            console.error('❌ Export error:', error);
             throw error;
         }
     }

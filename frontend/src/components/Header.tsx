@@ -101,11 +101,14 @@ function Header({
                             isDark ? 'text-white' : 'text-neutral-900'
                         }`}
                     >
-                        <div className="flex items-center justify-center w-10 h-10 bg-brand-primary rounded-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                        </div>
+                        <img
+                            src="https://matchmyschool.com/mmsLogo.png"
+                            alt="MMS Logo"
+                            className="w-10 h-10 object-contain"
+                            onError={(e) => {
+                                console.error('Logo failed to load, using fallback');
+                            }}
+                        />
                         <div className="text-left">
                             <h1 className="text-lg font-bold font-heading leading-tight">
                                 Test d'Éligibilité
