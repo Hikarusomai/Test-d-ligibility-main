@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
@@ -24,6 +25,13 @@ function Header({
     const [user, setUser] = useState<User | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'fr';
+
+    const toggleLanguage = () => {
+        const newLang = currentLang === 'fr' ? 'en' : 'fr';
+        i18n.changeLanguage(newLang);
+    };
 
     useEffect(() => {
         const storedUser = apiService.getStoredUser();
@@ -128,6 +136,14 @@ function Header({
                             </button>
                         )}
 
+                        <button
+                            onClick={toggleLanguage}
+                            className="p-2.5 rounded-lg bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-all text-sm font-bold"
+                            title={currentLang === 'fr' ? 'Switch to English' : 'Passer en français'}
+                        >
+                            {currentLang === 'fr' ? 'EN' : 'FR'}
+                        </button>
+
                         {/* User Menu */}
                         {user ? (
                             <div className="relative" ref={menuRef}>
@@ -177,7 +193,7 @@ function Header({
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
-                                                    Admin Dashboard
+                                                    {t('nav.adminDashboard')}
                                                 </button>
                                                 <hr className={isDark ? 'border-neutral-700' : 'border-neutral-200'} />
                                             </>
@@ -198,7 +214,7 @@ function Header({
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                             </svg>
-                                            Dashboard
+                                            {t('nav.dashboard')}
                                         </button>
 
                                         <hr className={isDark ? 'border-neutral-700' : 'border-neutral-200'} />
@@ -215,7 +231,7 @@ function Header({
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                             </svg>
-                                            Déconnexion
+                                            {t('nav.logout')}
                                         </button>
                                     </div>
                                 )}
@@ -226,7 +242,7 @@ function Header({
                                 size="md"
                                 variant="primary"
                             >
-                                Se connecter
+                                {t('nav.login')}
                             </Button>
                         )}
                     </div>
