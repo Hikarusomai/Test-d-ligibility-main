@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Technique - Module Test d'Éligibilité VISA</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            page-break-before: always;
+        }
+        h1:first-child { page-break-before: auto; }
+        h2 {
+            color: #34495e;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .header-info {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .toc a:hover { text-decoration: underline; }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        @media print {
+            body { margin: 0; }
+            a { text-decoration: none; color: #333; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-info">
+        <h1 style="border: none; text-align: center;">DOCUMENTATION TECHNIQUE</h1>
+        <h2 style="border: none; text-align: center;">Module Test d'Éligibilité VISA - Intégration MatchMySchool</h2>
+        <p><strong>Version :</strong> 1.0 | <strong>Date :</strong> 08 avril 2026</p>
+        <p><strong>ID Perplexity :</strong> À fournir par email</p>
+    </div>
+
+    <div class="toc">
+        <h3>Table des matières</h3>
+        <ol>
+            <li><a href="#vue-densemble">Vue d'ensemble</a></li>
+            <li><a href="#architecture">Architecture technique</a></li>
+            <li><a href="#questions">Structure des questions</a>
+                <ul style="margin-left: 20px;">
+                    <li>3.1 Types de questions</li>
+                    <li>3.2 Format MMS Builder</li>
+                    <li>3.3 Questions conditionnelles</li>
+                    <li>3.4 Calcul dynamique (Budget)</li>
+                </ul>
+            </li>
+            <li><a href="#scoring">Système de scoring</a></li>
+            <li><a href="#scraper">Scraper d'exigences pays</a></li>
+            <li><a href="#briefing">Génération de briefings IA</a></li>
+            <li><a href="#chatbot">Chatbot et limitations</a></li>
+            <li><a href="#database">Intégration base de données</a></li>
+            <li><a href="#json">Questions complètes (JSON)</a></li>
+            <li><a href="#checklist">Checklist d'intégration</a></li>
+        </ol>
+    </div>
+
+    <h1 id="vue-densemble">1. Vue d'ensemble</h1>
+
+    <h2>1.1 Objectif du module</h2>
+    <p>Le module "Test d'Éligibilité VISA" permet aux étudiants internationaux d'évaluer leurs chances d'obtenir un visa étudiant pour différents pays (France, Canada, USA, UK, etc.).</p>
+
+    <div class="info">
+        <strong>Caractéristiques principales :</strong>
+        <ul>
+            <li>Scoring mathématique pour le calcul du score</li>
+            <li>IA (Perplexity/Gemini) pour la génération de briefings personnalisés</li>
+            <li>Scraper automatique pour récupérer les exigences officielles des pays</li>
+            <li>Chatbot d'assistance avec limitation</li>
+        </ul>
+    </div>
+
+    <h2>1.2 Format Backoffice MMS</h2>
+    <div class="warning">
+        <strong>⚠️ IMPORTANT :</strong> Les questions doivent utiliser le <strong>Builder MMS</strong> avec la structure :<br>
+        - <code>language</code> + <code>title</code>/<code>title_en</code><br>
+        - <code>code</code> (unique) + <code>score</code> (poids)<br>
+        - <code>options</code> avec <code>title</code>/<code>title_en</code>/<code>code</code>/<code>score</code><br>
+        <em>Voir section 3.2 pour le format complet du Builder MMS.</em>
+    </div>
+    <h2>1.3 Différences avec le test MMS existant</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Caractéristique</th>
+                <th>Test MMS actuel</th>
+                <th>Module VISA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Scoring</td>
+                <td>100% mathématique</td>
+                <td>Mixte (math + IA pour briefing)</td>
+            </tr>
+            <tr>
+                <td>Questions</td>
+                <td>À choix fixes</td>
+                <td>Choix + entrées texte + numériques</td>
+            </tr>
+            <tr>
+                <td>Budget</td>
+                <td>Valeur fixe</td>
+                <td>Comparaison avec seuils pays</td>
+            </tr>
+            <tr>
+                <td>Sources de données</td>
+                <td>Statiques</td>
+                <td>Scraper dynamique</td>
+            </tr>
+            <tr>
+                <td>Chatbot</td>
+                <td>Non</td>
+                <td>Oui (avec limitation)</td>
+            </tr>
+            <tr>
+                <td>Base de données</td>
+                <td>MMS existante</td>
+                <td>DB séparée (à migrer)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 id="architecture">2. Architecture technique</h1>
+
+    <h2>2.1 Architecture actuelle (standalone)</h2>
+    <pre style="font-size: 10px;">
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (Next.js)                     │
+│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │  Test UI      │  │  Results UI  │  │   Chatbot UI     │  │
+│  └───────────────┘  └──────────────┘  └──────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Backend (Node.js/Express)                 │
+│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ Auth Controller│  │Test Controller│ │Briefing Controller││
+│  └───────────────┘  └──────────────┘  └──────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │           Eligibility Engine (Scoring)                │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Scraper (Port 3001)                       │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │     Gemini API → Country Requirements DB             │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    MongoDB                                   │
+│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │  Users        │  │Submissions   │  │Country           │  │
+│  │               │  │              │  │Requirements      │  │
+│  └───────────────┘  └──────────────┘  └──────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+    </pre>
+
+    <h2>2.2 Fichiers clés</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fichier</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>backend/controllers/testController.js</code></td>
+                <td>Logique de soumission et briefing</td>
+            </tr>
+            <tr>
+                <td><code>backend/utils/eligibilityEngine.js</code></td>
+                <td>Moteur de scoring</td>
+            </tr>
+            <tr>
+                <td><code>serveur/server.js</code></td>
+                <td>Scraper avec Gemini API</td>
+            </tr>
+            <tr>
+                <td><code>docs/COMPLETE_VISA_QUESTIONS.json</code></td>
+                <td>Questions complètes</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 id="questions">3. Structure des questions</h1>
+
+    <p>Le test comprend <strong>23 questions</strong> organisées en 6 catégories :</p>
+
+    <div class="info">
+        <strong>Pays couverts :</strong>
+        <ul>
+            <li><strong>Q1 (Nationalité)</strong> : 47 pays dont Maroc, Tunisie, Algérie, Égypte, Arabie saoudite, Émirats, Nigeria, Afrique du Sud, Inde, Chine, Corée du Sud, Japon, etc.</li>
+            <li><strong>Q2 (Destination)</strong> : 19 pays d'étude : USA, Canada, Australie, UK, France, Allemagne, Espagne, Italie, Finlande, Irlande, Danemark, Norvège, Suède, Pologne, Malte, Belgique, Chine, Turquie, Corée du Sud</li>
+        </ul>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th>Questions</th>
+                <th>Poids total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Personnel</td>
+                <td>Q4-Q6</td>
+                <td>25 pts</td>
+            </tr>
+            <tr>
+                <td>Éducation</td>
+                <td>Q8, Q10-Q12</td>
+                <td>20 pts</td>
+            </tr>
+            <tr>
+                <td>Langue</td>
+                <td>Q9</td>
+                <td>8 pts</td>
+            </tr>
+            <tr>
+                <td>Projet</td>
+                <td>Q13-Q15</td>
+                <td>14 pts</td>
+            </tr>
+            <tr>
+                <td>Finance</td>
+                <td>Q16-Q20</td>
+                <td>33 pts</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>20 questions scorées</strong></td>
+                <td><strong>100 pts</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3.1 Types de questions</h2>
+    <ul>
+        <li><strong>single_choice</strong> : Une réponse parmi plusieurs options</li>
+        <li><strong>multi_choice</strong> : Plusieurs réponses possibles</li>
+        <li><strong>boolean</strong> : Oui/Non</li>
+        <li><strong>number</strong> : Entrée numérique</li>
+        <li><strong>text</strong> : Texte libre (non scoré, informationnel)</li>
+    </ul>
+
+    <h2>3.2 Format MMS Builder</h2>
+    <div class="info">
+        <strong>Interface du Backoffice MMS - Eligibility Tests :</strong>
+        <ul style="margin-top: 10px;">
+            <li><strong>Page</strong> : Eligibility Tests → Liste des tests</li>
+            <li><strong>Filtres</strong> : Par nom/description, Type, Study Levels, Program Domains</li>
+            <li><strong>Actions</strong> : Add Test, Edit, Open Builder</li>
+        </ul>
+    </div>
+
+    <h3>3.2.1 Structure d'une question (JSON)</h3>
+    <pre style="background: #2d2d2d; color: #f8f8f2;">
+{
+  "language": "fr",           // 🇫🇷 Langue de l'interface (pour le builder)
+  "title": "Libellé FR",       // Texte de la question en français
+  "title_en": "English text",  // Texte de la question en anglais
+  "code": "Q_unique_key",      // Code unique de la question
+  "score": 10,                // Score affiché dans le builder (référence)
+  "description": "Description FR",
+  "description_en": "Description EN",
+  "category": "personal",      // Catégorie (voir liste ci-dessous)
+  "type": "single_choice",     // single_choice, multi_choice, boolean, number, text
+  "options": [                // Options de réponse
+    {
+      "title": "Option FR",
+      "title_en": "Option EN",
+      "code": "OPT_01",
+      "score": 80              // ⚠️ Score 0-100 : % de points accordés
+    }
+  ]
+}
+    </pre>
+
+    <div class="warning">
+        <strong>⚠️ IMPORTANT - Système de scoring MMS :</strong><br>
+        Les scores des options sont sur une échelle <strong>0-100</strong> (pourcentage).<br>
+        <strong>Score final de la question</strong> = (Score option / 100) × Points max de la question<br>
+        <br>
+        <em>Exemple : Question avec 10 points max, option score 80 → (80/100) × 10 = 8 points</em>
+    </div>
+
+    <h3>3.2.2 Création d'un Test VISA dans le Backoffice</h3>
+
+    <h4>Étape 1 : Créer le test</h4>
+    <pre>
+Eligibility Tests → <strong>Add Test</strong>
+
+┌─────────────────────────────────────────┐
+│ Test Name *                              │
+│ Test d'Éligibilité VISA                  │
+│                                         │
+│ Description *                            │
+│ Évaluation des chances d'obtenir un     │
+│ visa étudiant (France, Canada, USA...)  │
+│                                         │
+│ Type *                                  │
+│ ▼ Special (Specific to a program)       │
+│   [Note: Créer nouveau type "VISA"]     │
+│                                         │
+│ Status                                  │
+│ ○ Active  ● Inactive                    │
+│                                         │
+│ Study Levels (optional)                 │
+│ ☑ Bac+3  ☑ Bac+4  ☑ Bac+5               │
+│                                         │
+│ Program Domain                          │
+│ ▼ International (ou sans domaine spécifique)│
+│                                         │
+│           [Cancel]  [Create Test]       │
+└─────────────────────────────────────────┘
+    </pre>
+
+    <h4>Étape 2 : Builder - Ajouter les questions</h4>
+    <pre>
+Eligibility Tests → [Open Builder]
+
+┌─────────────────────────────────────────────────────────────┐
+│  Build Your Test                                            │
+│  ┌─────────────┐  ┌──────────────────────────────────────┐  │
+│  │ ELEMENTS    │  │  CANVAS                               │  │
+│  │             │  │                                       │  │
+│  │ [Search]    │  │  Q4: Avez-vous déjà obtenu/refusé... │  │
+│  │             │  │  ┌─────────────────────────────────┐  │  │
+│  │ Single      │  │  │ Oui - Déjà obtenu       [100]  │  │  │
+│  │ Choice      │  │  │ Non - Jamais             [80]   │  │  │  │
+│  │             │  │  │ Refusé - corrigé         [60]   │  │  │  │
+│  │ Multi       │  │  │ Refusé - non corrigé    [0]    │  │  │  │
+│  │ Choice      │  │  └─────────────────────────────────┘  │  │
+│  │             │  │                                       │  │
+│  │ Boolean     │  │  [+ Drag question here]               │  │
+│  │             │  │                                       │  │
+│  │ Number      │  │                                       │  │
+│  │             │  │                                       │  │
+│  │ Text        │  │                                       │  │
+│  │             │  │                                       │  │
+│  └─────────────┘  │                                       │  │
+│                   └───────────────────────────────────────┘  │
+│                                                             │
+│  Progress: 12/23 questions     [Save Test]                   │
+└─────────────────────────────────────────────────────────────┘
+    </pre>
+
+    <h4>Étape 3 : Configuration d'une question</h4>
+    <pre>
+┌─────────────────────────────────────────────────────────────┐
+│  Edit Question                                              │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ Language: 🇫🇷 Français  🇬🇧 English                  │  │
+│  │                                                       │  │
+│  │ Question Details                                     │  │
+│  │                                                       │  │
+│  │ Title *                         [FR input]           │  │
+│  │ Title_en *                      [EN input]           │  │
+│  │                                                       │  │
+│  │ Code (shared)                   Q4_visa_history      │  │
+│  │ Score (shared)                  10                   │  │
+│  │                                                       │  │
+│  │ Description                     [FR description]     │  │
+│  │ Description_en                  [EN description]     │  │
+│  │                                                       │  │
+│  │ Category                        [▼ Select/Search]    │  │
+│  │                                                       │  │
+│  │ Options                                    [+ Add]   │  │
+│  │ ┌─────────────────────────────────────────────────┐  │  │
+│  │ │ Option 1                                      │  │  │
+│  │ │ Title *         Déjà obtenu                   │  │  │
+│  │ │ Title_en *      Already granted                │  │  │
+│  │ │ Code            OPT_GRANTED                    │  │
+│  │ │ Score           100                           │  │
+│  │ └─────────────────────────────────────────────────┘  │  │
+│  │                                                       │  │
+│  │              [Cancel]  [Save Question]               │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+    </pre>
+
+    <h3>3.2.3 Types de questions supportés</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Type MMS</th>
+                <th>Description</th>
+                <th>Exemple VISA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>single_choice</code></td>
+                <td>Une seule réponse possible</td>
+                <td>Q4, Q5, Q6, Q8...</td>
+            </tr>
+            <tr>
+                <td><code>multi_choice</code></td>
+                <td>Plusieurs réponses possibles</td>
+                <td>Q17 (sources de financement)</td>
+            </tr>
+            <tr>
+                <td><code>boolean</code></td>
+                <td>Oui/Non</td>
+                <td>Q10, Q11, Q14, Q15, Q20</td>
+            </tr>
+            <tr>
+                <td><code>number</code></td>
+                <td>Entrée numérique</td>
+                <td>Q18 (budget)</td>
+            </tr>
+            <tr>
+                <td><code>text</code></td>
+                <td>Texte libre</td>
+                <td>Q9bis (détails test langue)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3.2.4 Catégories de questions</h3>
+    <div class="info">
+        <strong>Categories disponibles dans le Builder MMS (dropdown avec search) :</strong>
+        <ul>
+            <li><code>personal</code> - Données personnelles et identité</li>
+            <li><code>education</code> - Formation et académique</li>
+            <li><code>language</code> - Compétences linguistiques</li>
+            <li><code>project</code> - Projet d'études et orientation</li>
+            <li><code>finance</code> - Financement et budget</li>
+        </ul>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie MMS</th>
+                <th>Description</th>
+                <th>Questions VISA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>personal</code></td>
+                <td>Données personnelles</td>
+                <td>Q1, Q3-Q6</td>
+            </tr>
+            <tr>
+                <td><code>education</code></td>
+                <td>Formation et académique</td>
+                <td>Q7, Q8, Q10-Q12</td>
+            </tr>
+            <tr>
+                <td><code>language</code></td>
+                <td>Compétences linguistiques</td>
+                <td>Q9, Q9bis</td>
+            </tr>
+            <tr>
+                <td><code>project</code></td>
+                <td>Projet d'études</td>
+                <td>Q2, Q13-Q15</td>
+            </tr>
+            <tr>
+                <td><code>finance</code></td>
+                <td>Financement et budget</td>
+                <td>Q16-Q20</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3.2.5 Study Levels & Program Domains</h3>
+    <div class="warning">
+        <strong>Filtres pour le test VISA :</strong>
+        <ul>
+            <li><strong>Study Levels</strong> : Bac+3, Bac+4, Bac+5 (tous cochés - test applicable à tous les niveaux)</li>
+            <li><strong>Program Domain</strong> : Laisser vide ou sélectionner "International" (test transverse)</li>
+        </ul>
+        <p><em>Note : Contrairement aux tests "Special" existants (Tourism, Marketing...), le test VISA n'est pas spécifique à un domaine.</em></p>
+    </div>
+
+    <h3>3.2.6 Logique de scoring MMS (0-100)</h3>
+    <div class="info">
+        <strong>Comprendre le système de scoring MMS (0-100) :</strong>
+        <pre style="background: #f4f4f4; border: 1px solid #ddd;">
+┌─────────────────────────────────────────────────────────────┐
+│  Question Q4 - Historique visa                              │
+│  Score (shared) = 10  ← Points MAX de la question          │
+│                                                             │
+│  Options (scores sur 100 = pourcentage) :                   │
+│  ┌────────────────────────────────────┬─────────────┐      │
+│  │ Option                              │ Score MMS   │      │
+│  ├────────────────────────────────────┼─────────────┤      │
+│  │ Déjà obtenu                         │ 100         │      │
+│  │ Jamais                              │ 80          │      │
+│  │ Refusé - motif corrigé              │ 60          │      │
+│  │ Refusé - non corrigé                │ 0           │      │
+│  └────────────────────────────────────┴─────────────┘      │
+│                                                             │
+│  Calcul : (Score option / 100) × Score question            │
+│  Ex: (80/100) × 10 = 8 points                              │
+└─────────────────────────────────────────────────────────────┘
+        </pre>
+    </div>
+
+    <h3>3.2.7 Correspondance scores ancien → nouveau format</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Ancien format (standalone)</th>
+                <th>Format MMS Builder (0-100)</th>
+                <th>Calcul pour 10 pts max</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>10 pts (max)</td>
+                <td>100</td>
+                <td>(100/100) × 10 = 10</td>
+            </tr>
+            <tr>
+                <td>8 pts</td>
+                <td>80</td>
+                <td>(80/100) × 10 = 8</td>
+            </tr>
+            <tr>
+                <td>6 pts</td>
+                <td>60</td>
+                <td>(60/100) × 10 = 6</td>
+            </tr>
+            <tr>
+                <td>5 pts</td>
+                <td>50</td>
+                <td>(50/100) × 10 = 5</td>
+            </tr>
+            <tr>
+                <td>3 pts</td>
+                <td>30</td>
+                <td>(30/100) × 10 = 3</td>
+            </tr>
+            <tr>
+                <td>0 pts</td>
+                <td>0</td>
+                <td>(0/100) × 10 = 0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3.2.8 Mapping complet ancien format → MMS Builder</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Ancien format (standalone)</th>
+                <th>Format MMS Builder</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>label</code></td>
+                <td><code>title</code> + <code>title_en</code></td>
+            </tr>
+            <tr>
+                <td><code>key</code></td>
+                <td><code>code</code></td>
+            </tr>
+            <tr>
+                <td><code>weight</code></td>
+                <td><code>score</code> (référence, points max)</td>
+            </tr>
+            <tr>
+                <td><code>options</code> (array strings)</td>
+                <td><code>options</code> (array objects avec title/title_en/code/score)</td>
+            </tr>
+            <tr>
+                <td><code>scoringRules</code> (object: 0-10)</td>
+                <td>Scores dans <code>option.score</code> (0-100)</td>
+            </tr>
+            <tr>
+                <td><code>isRequired: true</code></td>
+                <td>Toutes les questions sont affichées par défaut</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3.3 Questions conditionnelles</h2>
+    <div class="warning">
+        <strong>Questions avec affichage conditionnel :</strong>
+        <ul>
+            <li><strong>Q3bis</strong> (autorisation parentale) : uniquement si Q3 = "Oui" (mineur)</li>
+            <li><strong>Q3ter</strong> (tranche d'âge) : uniquement si Q3 = "Non" (majeur)</li>
+            <li><strong>Q9bis</strong> (détails test langue) : uniquement si Q9 = "Oui"</li>
+        </ul>
+        <p>Dans MMS, utiliser les sections/étapes ou les champs conditionnels du Builder.</p>
+    </div>
+
+    <h2>3.4 Question avec calcul dynamique (Budget Q18)</h2>
+    <div class="info">
+        Le scoring de Q18 compare le montant saisi au minimum requis par le pays :
+        <pre style="margin-top: 10px;">
+ratio = montantUtilisateur / montantRequisPays
+if (ratio >= 1) points = 10
+else if (ratio >= 0.8) points = 6
+else if (ratio >= 0.6) points = 3
+else points = 0 + HARD_FAIL
+        </pre>
+    </div>
+
+    <h1 id="scoring">4. Système de scoring</h1>
+
+    <h2>4.1 Formule de calcul</h2>
+    <pre>
+Score brut = Σ(points obtenus par question)
+Score max = Σ(poids des questions scorées)
+Score normalisé = (Score brut / Score max) × 100
+    </pre>
+
+    <h2>4.2 Règles de scoring par type</h2>
+
+    <h3>Type 1 : Choix avec règles explicites</h3>
+    <p>Exemple Q4 (Historique visa) :</p>
+    <pre>
+scoringRules: {
+  "Jamais": 8,
+  "Déjà obtenu": 10,
+  "Déjà refusé - motif corrigé": 6,
+  "Déjà refusé - non corrigé": 0
+}
+Points = (scoringRules[réponse] / 10) × weight
+    </pre>
+
+    <h3>Type 2 : Boolean</h3>
+    <pre>
+if (réponse === true) points = weight
+else points = 0
+    </pre>
+
+    <h3>Type 3 : Numérique avec comparaison</h3>
+    <pre>
+ratio = montantUtilisateur / montantRequisPays
+if (ratio >= 1) points = 10
+else if (ratio >= 0.8) points = 6
+else if (ratio >= 0.6) points = 3
+else points = 0 + hardFail
+    </pre>
+
+    <h2>4.3 Points bloquants (Hard Fails)</h2>
+    <div class="warning">
+        Certains critères provoquent un <strong>échec automatique</strong> :
+        <ul>
+            <li>Refus de visa non corrigé → Score max = 40/100</li>
+            <li>Antécédents migratoires graves → Score max = 40/100</li>
+            <li>Casier judiciaire grave → Score max = 40/100</li>
+            <li>Mineur sans autorisation parentale → Score max = 40/100</li>
+            <li>Budget &lt; 60% du requis → Score max = 40/100</li>
+        </ul>
+    </div>
+
+    <h2>4.4 Seuils de statut</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Score</th>
+                <th>Statut</th>
+                <th>Signification</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>≥ 80%</td>
+                <td>ELIGIBLE</td>
+                <td>Profil solide</td>
+            </tr>
+            <tr>
+                <td>65-79%</td>
+                <td>MITIGE</td>
+                <td>Profil moyen avec points à améliorer</td>
+            </tr>
+            <tr>
+                <td>50-64%</td>
+                <td>FAIBLE</td>
+                <td>Manque des critères importants</td>
+            </tr>
+            <tr>
+                <td>&lt; 50%</td>
+                <td>A_RISQUE</td>
+                <td>Risque élevé de refus</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 id="scraper">5. Scraper d'exigences pays</h1>
+
+    <h2>5.1 Fonctionnement</h2>
+    <p>Le scraper utilise <strong>Google Gemini 2.0 Flash</strong> pour extraire les exigences officielles depuis les sites gouvernementaux.</p>
+
+    <h2>5.2 Pays couverts</h2>
+    <p>USA, Canada, Australie, UK, France, Allemagne, Espagne, Italie, Finlande, Irlande, Danemark, Norvège, Suède, Pologne, Malte, Belgique, Chine, Turquie, Corée du Sud</p>
+
+    <h2>5.3 Données extraites</h2>
+    <pre>
+{
+  "financial": {
+    "min_monthly_eur": 615,
+    "min_annual_eur": 7380,
+    "proof_accepted": ["Relevés bancaires", "Attestation garants"]
+  },
+  "language": {
+    "tests_accepted": [{"name": "DELF", "level": "B2"}],
+    "validity_months": 24
+  },
+  "admission": {
+    "required": true,
+    "proof_types": ["Lettre d'admission"]
+  },
+  "documents": {
+    "mandatory": ["Passeport", "Photos", "Assurance"],
+    "optional": ["Attestation logement"]
+  },
+  "fees": {
+    "visa_fee_eur": 99,
+    "service_fee_eur": 50
+  },
+  "processing": {
+    "average_delay_days": 30,
+    "appointment_required": true
+  }
+}
+    </pre>
+
+    <h1 id="briefing">6. Génération de briefings IA</h1>
+
+    <h2>6.1 API utilisée</h2>
+    <p><strong>Perplexity AI</strong> (modèles <code>sonar-pro</code> ou <code>sonar-32k-online</code>)</p>
+
+    <h2>6.2 Structure du briefing</h2>
+    <pre>
+## Résumé du profil
+## Points forts
+## Points à améliorer
+## Recommandations clés
+    </pre>
+
+    <h1 id="chatbot">7. Chatbot et limitations</h1>
+
+    <h2>7.1 Limites du test VISA</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Période</th>
+                <th>Limite</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Semaine</td>
+                <td>3 tests</td>
+                <td>"Il vous reste X tests cette semaine"</td>
+            </tr>
+            <tr>
+                <td>Mois</td>
+                <td>10 tests</td>
+                <td>"Limite mensuelle atteinte"</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>7.2 Limite du chatbot</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Limite</th>
+                <th>Message d'avertissement</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>100 questions/user</td>
+                <td>"Plus que X questions disponibles" (à 10 restantes)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>7.3 Stockage des quotas</h2>
+    <pre>
+{
+  "visa_test_limits": {
+    "weekly_count": 2,
+    "weekly_reset": "2026-04-14",
+    "monthly_count": 8,
+    "monthly_reset": "2026-05-01"
+  },
+  "chatbot_quota": {
+    "used": 95,
+    "limit": 100
+  }
+}
+    </pre>
+
+    <h1 id="database">8. Intégration base de données</h1>
+
+    <h2>8.1 Collections à créer/étendre</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Collection locale</th>
+                <th>Collection MMS</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>User</td>
+                <td>users</td>
+                <td>Ajouter champs <code>visa_test_limits</code></td>
+            </tr>
+            <tr>
+                <td>Question</td>
+                <td>eligibilitytests</td>
+                <td>Ajouter <code>testType: "VISA"</code></td>
+            </tr>
+            <tr>
+                <td>TestSubmission</td>
+                <td>eligibilityassessments</td>
+                <td>Ajouter <code>testType: "VISA"</code></td>
+            </tr>
+            <tr>
+                <td>CountryRequirement</td>
+                <td>country_requirements</td>
+                <td>Créer</td>
+            </tr>
+            <tr>
+                <td>ChatbotLog</td>
+                <td>chatbot_logs</td>
+                <td>Créer</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>8.2 Variables d'environnement</h2>
+    <pre>
+# Scraper
+GEMINI_API_KEY=xxx
+
+# Briefing IA
+PERPLEXITY_API_KEY=xxx
+
+# Configuration
+VISA_TEST_WEEKLY_LIMIT=3
+VISA_TEST_MONTHLY_LIMIT=10
+CHATBOT_QUOTA_PER_USER=100
+    </pre>
+
+    <h1 id="json">9. Questions complètes (JSON)</h1>
+
+    <h2>9.1 Liste des 23 questions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Clé</th>
+                <th>Catégorie</th>
+                <th>Poids</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>Q1_nationality</td><td>personal</td><td>0</td><td><em>47 pays</em></td></tr>
+            <tr><td>2</td><td>Q2_destination_country</td><td>project</td><td>0</td><td><em>19 pays</em></td></tr>
+            <tr><td>3</td><td>Q3_is_minor</td><td>personal</td><td>0</td></tr>
+            <tr><td>4</td><td>Q3bis_parental_authorization</td><td>personal</td><td>0</td></tr>
+            <tr><td>5</td><td>Q3ter_age_range</td><td>personal</td><td>0</td></tr>
+            <tr><td>6</td><td>Q4_visa_history</td><td>personal</td><td>10</td></tr>
+            <tr><td>7</td><td>Q5_migration_issues</td><td>personal</td><td>10</td></tr>
+            <tr><td>8</td><td>Q6_criminal_record</td><td>personal</td><td>5</td></tr>
+            <tr><td>9</td><td>Q7_program_type</td><td>education</td><td>0</td></tr>
+            <tr><td>10</td><td>Q8_admission_status</td><td>education</td><td>11</td></tr>
+            <tr><td>11</td><td>Q9_language_level_status</td><td>language</td><td>8</td></tr>
+            <tr><td>12</td><td>Q9bis_language_test_details</td><td>language</td><td>0</td></tr>
+            <tr><td>13</td><td>Q10_transcripts_available</td><td>education</td><td>3</td></tr>
+            <tr><td>14</td><td>Q11_tuition_payment_proof</td><td>education</td><td>3</td></tr>
+            <tr><td>15</td><td>Q12_gaps_justified</td><td>education</td><td>3</td></tr>
+            <tr><td>16</td><td>Q13_project_coherence</td><td>project</td><td>4</td></tr>
+            <tr><td>17</td><td>Q14_official_process_started</td><td>project</td><td>5</td></tr>
+            <tr><td>18</td><td>Q15_main_intent_study</td><td>project</td><td>5</td></tr>
+            <tr><td>19</td><td>Q16_monthly_means_ratio</td><td>finance</td><td>14</td></tr>
+            <tr><td>20</td><td>Q17_funding_sources</td><td>finance</td><td>5</td></tr>
+            <tr><td>21</td><td>Q18_first_year_amount_eur</td><td>finance</td><td>10</td></tr>
+            <tr><td>22</td><td>Q19_scholarship_proof</td><td>finance</td><td>1</td></tr>
+            <tr><td>23</td><td>Q20_sponsor_commitment</td><td>finance</td><td>3</td></tr>
+        </tbody>
+    </table>
+
+    <div class="info">
+        <strong>Note :</strong> Le JSON complet des questions se trouve dans le fichier <code>docs/COMPLETE_VISA_QUESTIONS.json</code>
+    </div>
+
+    <h1 id="checklist">10. Checklist d'intégration</h1>
+
+    <h2>10.1 Backoffice MMS (Builder)</h2>
+    <ul>
+        <li>☐ Ajouter "VISA" comme nouveau Type dans le dropdown</li>
+        <li>☐ Créer le test "Test d'Éligibilité VISA"</li>
+        <li>☐ Configurer les 23 questions via le Builder avec format bilingue FR/EN</li>
+        <li>☐ Configurer les scores de chaque question (total 100 pts)</li>
+        <li>☐ Configurer les options de réponse bilingues</li>
+        <li>☐ Associer les Study Levels (Bac+3, Bac+4, Bac+5)</li>
+        <li>☐ Associer les Program Domains pertinents</li>
+    </ul>
+
+    <h2>10.2 Backend</h2>
+    <ul>
+        <li>☐ Créer les collections DB nécessaires</li>
+        <li>☐ Migrer les 23 questions dans <code>eligibilitytests</code></li>
+        <li>☐ Ajouter le champ <code>testType: "VISA"</code> dans les schémas</li>
+        <li>☐ Implémenter le moteur de scoring dans <code>EligibilityAssessment</code></li>
+        <li>☐ Intégrer le scraper (microservice ou worker)</li>
+        <li>☐ Configurer les clés API (Gemini, Perplexity)</li>
+        <li>☐ Implémenter les quotas (tests + chatbot)</li>
+    </ul>
+
+    <h2>10.3 Frontend</h2>
+    <ul>
+        <li>☐ Créer l'onglet VISA dans le backoffice</li>
+        <li>☐ Créer la page de test pour les students</li>
+        <li>☐ Afficher les résultats</li>
+        <li>☐ Messages de quota</li>
+    </ul>
+
+    <h2>10.4 Tests</h2>
+    <ul>
+        <li>☐ Scoring correct</li>
+        <li>☐ Briefing IA</li>
+        <li>☐ Quotas</li>
+        <li>☐ Scraper</li>
+        <li>☐ End-to-end</li>
+    </ul>
+
+    <hr style="margin-top: 50px;">
+
+    <h2 style="text-align: center;">API Endpoints</h2>
+
+    <h3>Backend</h3>
+    <pre>
+POST /api/visa/test/submit    - Soumettre le test
+GET  /api/visa/test/my        - Liste de mes tests
+GET  /api/visa/test/:id       - Détails d'un test
+GET  /api/visa/briefing/:id   - Générer le briefing IA
+POST /api/visa/chatbot/ask    - Poser une question
+    </pre>
+
+    <h3>Scraper</h3>
+    <pre>
+GET  /scrape/:country         - Scraper un pays
+POST /scrape/all              - Scraper tous les pays
+GET  /requirements/:country   - Exigences d'un pays
+GET  /requirements            - Liste des pays disponibles
+    </pre>
+
+    <hr style="margin-top: 50px;">
+
+    <p style="text-align: center; color: #7f8c8d;"><strong>Fin de la documentation technique</strong><br>ID Perplexity : À fournir par email pour activation des API</p>
+
+    <div class="no-print" style="position: fixed; bottom: 20px; right: 20px; background: #3498db; color: white; padding: 15px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <strong>Pour convertir en PDF :</strong><br>
+        Ctrl+P → Enregistrer au format PDF
+    </div>
+</body>
+</html>
