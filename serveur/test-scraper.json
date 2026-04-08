@@ -1,0 +1,86 @@
+{
+  "country": {
+    "name": "France",
+    "iso3": "FRA",
+    "slug": "france"
+  },
+  "source": {
+    "url": "https://france-visas.gouv.fr",
+    "operator": "France-Visas (Ministère de l’Europe et des Affaires étrangères)",
+    "last_scraped": "2025-11-08",
+    "last_updated": "2025-10-01"
+  },
+  "requirements": {
+    "financial": {
+      "min_monthly_eur": 615,
+      "min_annual_eur": 7380,
+      "currency": "EUR",
+      "proof_accepted": [
+        "attestation de bourse",
+        "attestation de garant",
+        "relevé bancaire personnel",
+        "preuve de virement"
+      ],
+      "source_url": "https://france-visas.gouv.fr/fr_FR/web/france-visas/etudes"
+    },
+    "language": {
+      "tests_accepted": [
+        {"name": "DELF B2", "level": "B2"},
+        {"name": "TCF B2", "level": "B2"},
+        {"name": "IELTS", "level": "6.5"}
+      ],
+      "validity_months": 24,
+      "exemptions": [
+        "cours en anglais avec attestation universitaire",
+        "diplôme antérieur en français"
+      ],
+      "source_url": "https://campusfrance.org"
+    },
+    "admission": {
+      "required": true,
+      "proof_types": ["lettre d’admission", "pré-admission conditionnelle"],
+      "official_portal": "Campus France",
+      "special_notes": "obligatoire pour tous les étudiants étrangers hors UE",
+      "source_url": "https://www.campusfrance.org/fr/campus-france"
+    },
+    "documents": {
+      "mandatory": [
+        "Passeport valide",
+        "Formulaire de demande de visa long séjour",
+        "Photo d’identité conforme",
+        "Preuve d’admission",
+        "Justificatif de ressources",
+        "Assurance santé",
+        "Casier judiciaire vierge"
+      ],
+      "optional": [
+        "Preuve d’hébergement",
+        "Lettre de motivation",
+        "Certificat médical"
+      ]
+    },
+    "fees": {
+      "visa_fee_eur": 99,
+      "service_fee_eur": 30,
+      "payment_modes": ["CB", "espèces", "chèque"],
+      "source_url": "https://france-visas.gouv.fr"
+    },
+    "processing": {
+      "average_delay_days": 21,
+      "appointment_required": true,
+      "center": "VFS / TLScontact selon pays",
+      "source_url": "https://france-visas.gouv.fr"
+    },
+    "red_flags": {
+      "minor_without_guardian": true,
+      "criminal_record": "eliminatory",
+      "overstay_history": "eliminatory"
+    }
+  },
+  "meta": {
+    "version": "2025.1",
+    "checksum": "sha256:5eab0e...",
+    "validated_by": "json_schema_v2",
+    "last_patch": "2025-11-08T15:20Z"
+  }
+}

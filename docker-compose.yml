@@ -1,0 +1,69 @@
+﻿services:
+  mongodb:
+    image: mongo:7
+    container_name: eligibility_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: eligibility_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: eligibility_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  scraper:
+    build: ./serveur
+    container_name: eligibility_scraper
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./serveur/.env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
+    volumes:
+      - ./serveur:/app
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:
+
+networks:
+  default:
+    name: eligibility_net

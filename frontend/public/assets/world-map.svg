@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <!-- Carte du monde avec contours des pays -->
+  <g id="countries" fill="none" stroke="#000" stroke-width="0.5">
+    <!-- Tous les pays seront ajoutés ici -->
+  </g>
+</svg>

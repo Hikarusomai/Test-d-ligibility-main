@@ -1,0 +1,39 @@
+# Tasks for HTG25 Refinement
+
+- [x] Study `visa_eligibility-master` questions and logic.
+- [x] Compare with `HTG25` current implementation.
+- [x] Create `.stories` folder and planning documents.
+- [x] **Backend: Align Seed Data**
+    - [x] Update `seed.js` to match VEM 20-question flow.
+    - [x] Correct `order: 1` (Nationality) and `order: 2` (Destination) labels.
+    - [x] Add missing questions (Q3: Mineur, Q3bis: Autorisation, Q3ter: Âge, Q7: Programme, Q9bis: Langue).
+    - [x] Update weights and options for all 20 questions.
+    - [x] Fix capitalization and accent issues (e.g., "Déjà obtenu").
+    - [x] Run `node scripts/seed.js` to update database.
+- [x] **Backend: Robust Scoring & AI**
+    - [x] Implement case-insensitive matching in `eligibilityEngine.js`.
+    - [x] Fix AI hallucinations by including user answers in the prompt.
+    - [x] Implement score capping for "hard fails" and harsher penalties for missing critical items.
+- [x] **Docker Integration**
+    - [x] Fix MongoDB connection in Docker (`localhost` -> `mongodb`).
+    - [x] Successfully re-seed database inside Docker.
+- [x] **Frontend: Refine Flow**
+    - [x] Verify `OriginCountryPage` (Map) correctly displays "Votre nationalité" (fetched from `order: 1`).
+    - [x] Verify `DestinationCountryPage` correctly displays "Votre pays de destination" (fetched from `order: 2`).
+    - [x] Update `App.tsx` to handle conditional question logic (e.g., skip Q3bis if not minor).
+    - [x] Support `conditionalDisplay` in `QuestionPage.tsx` (handled in `App.tsx` logic).
+    - [x] Implement Gating/Elimination UI (fixed "stuck" issue).
+- [x] **Project Cleanup**
+    - [x] Remove temporary files (`seed_output.txt`, `test-db.js`, `backend.log`, `frontend.log`).
+    - [x] Remove debugging scripts (`check-questions.js`, `check-qs.js`).
+- [x] **Deployment Planning**
+    - [x] Create `HTG25-Deployment-Plan.md` in `.stories` folder.
+    - [x] Outline Vercel (Frontend) + Render (Backend) + Atlas (Database) strategy.
+- [x] **Verification**
+    - [x] Test complete flow for different profiles (Minor, Adult, etc.).
+    - [x] Verify score accuracy against VEM logic (Budget ratios, Difficulty Coeff).
+    - [x] Final cleanup of root directory.
+- [x] **Logic Alignment (VEM)**
+    - [x] Implement Budget Scoring Ratios (Q18).
+    - [x] Implement Difficulty Coefficient Modulation.
+    - [x] Align Status Thresholds (Eligible >= 80).

@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Colors - Match My School */
+    --color-brand-primary: #0066CC;
+    --color-brand-primary-hover: #0052A3;
+    --color-brand-primary-active: #003D7A;
+    --color-brand-secondary: #1E40AF;
+    --color-brand-secondary-hover: #1E3A8A;
+    --color-brand-secondary-active: #1E3A8A;
+    
+    /* Accessibility */
+    --focus-ring-width: 2px;
+    --focus-ring-color: #0066CC;
+    --focus-ring-offset: 2px;
+    --min-touch-target: 44px;
+  }
+
+  /* Dark mode support */
+  .dark {
+    --color-bg: #0F172A;
+    --color-text: #F8FAFC;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: 0.25rem;
+  }
+
+  /* Remove default button styles */
+  button {
+    font-family: inherit;
+  }
+
+  /* Heading font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Accessibility utilities */
+  .touch-target {
+    min-height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+  }
+
+  /* Focus utilities */
+  .focus-ring {
+    @apply focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2;
+  }
+
+  /* Contrast utilities for WCAG AA */
+  .text-contrast-light {
+    color: #000000;
+  }
+
+  .text-contrast-dark {
+    color: #FFFFFF;
+  }
+}
