@@ -99,8 +99,8 @@
     <div class="header-info">
         <h1 style="border: none; text-align: center;">DOCUMENTATION TECHNIQUE</h1>
         <h2 style="border: none; text-align: center;">Module Test d'Éligibilité VISA - Intégration MatchMySchool</h2>
-        <p><strong>Version :</strong> 1.0 | <strong>Date :</strong> 08 avril 2026</p>
-        <p><strong>ID Perplexity :</strong> À fournir par email</p>
+        <p><strong>Version :</strong> 2.1 | <strong>Date :</strong> 08 avril 2026</p>
+        <p><strong>Clés API :</strong> GEMINI_API_KEY + PERPLEXITY_API_KEY transmises par email sécurisé</p>
     </div>
 
     <div class="toc">
@@ -187,7 +187,7 @@
             <tr>
                 <td>Base de données</td>
                 <td>MMS existante</td>
-                <td>DB séparée (à migrer)</td>
+                <td>MMS existante (même DB, collections étendues)</td>
             </tr>
         </tbody>
     </table>
@@ -853,7 +853,7 @@ else points = 0 + hardFail
         <tbody>
             <tr>
                 <td>100 questions/user</td>
-                <td>"Plus que X questions disponibles" (à 10 restantes)</td>
+                <td>"Il vous reste seulement 2 questions disponibles" (à 2 restantes)</td>
             </tr>
         </tbody>
     </table>
@@ -950,7 +950,7 @@ CHATBOT_QUOTA_PER_USER=100
             <tr><td>7</td><td>Q5_migration_issues</td><td>personal</td><td>10</td></tr>
             <tr><td>8</td><td>Q6_criminal_record</td><td>personal</td><td>5</td></tr>
             <tr><td>9</td><td>Q7_program_type</td><td>education</td><td>0</td></tr>
-            <tr><td>10</td><td>Q8_admission_status</td><td>education</td><td>11</td></tr>
+            <tr><td>10</td><td>Q8_admission_status</td><td>education</td><td>12</td></tr>
             <tr><td>11</td><td>Q9_language_level_status</td><td>language</td><td>8</td></tr>
             <tr><td>12</td><td>Q9bis_language_test_details</td><td>language</td><td>0</td></tr>
             <tr><td>13</td><td>Q10_transcripts_available</td><td>education</td><td>3</td></tr>
@@ -959,10 +959,10 @@ CHATBOT_QUOTA_PER_USER=100
             <tr><td>16</td><td>Q13_project_coherence</td><td>project</td><td>4</td></tr>
             <tr><td>17</td><td>Q14_official_process_started</td><td>project</td><td>5</td></tr>
             <tr><td>18</td><td>Q15_main_intent_study</td><td>project</td><td>5</td></tr>
-            <tr><td>19</td><td>Q16_monthly_means_ratio</td><td>finance</td><td>14</td></tr>
+            <tr><td>19</td><td>Q16_monthly_means_ratio</td><td>finance</td><td>15</td></tr>
             <tr><td>20</td><td>Q17_funding_sources</td><td>finance</td><td>5</td></tr>
             <tr><td>21</td><td>Q18_first_year_amount_eur</td><td>finance</td><td>10</td></tr>
-            <tr><td>22</td><td>Q19_scholarship_proof</td><td>finance</td><td>1</td></tr>
+            <tr><td>22</td><td>Q19_scholarship_proof</td><td>finance</td><td>2</td></tr>
             <tr><td>23</td><td>Q20_sponsor_commitment</td><td>finance</td><td>3</td></tr>
         </tbody>
     </table>
@@ -1035,7 +1035,7 @@ GET  /requirements            - Liste des pays disponibles
 
     <hr style="margin-top: 50px;">
 
-    <p style="text-align: center; color: #7f8c8d;"><strong>Fin de la documentation technique</strong><br>ID Perplexity : À fournir par email pour activation des API</p>
+    <p style="text-align: center; color: #7f8c8d;"><strong>Fin de la documentation technique</strong><br>GEMINI_API_KEY + PERPLEXITY_API_KEY : transmises par email sécurisé séparé</p>
 
     <div class="no-print" style="position: fixed; bottom: 20px; right: 20px; background: #3498db; color: white; padding: 15px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <strong>Pour convertir en PDF :</strong><br>

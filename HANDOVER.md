@@ -2,7 +2,7 @@
 
 **Public cible :** Équipe technique MatchMySchool (MMS)
 
-Ce document contient l'ensemble des informations nécessaires pour intégrer le module "Test d'Éligibilité VISA" dans la plateforme MatchMySchool Backoffice.
+> **Note :** L'équipe MMS reçoit uniquement le dossier `serveur/` (scraper IA Gemini). Le frontend et le backend standalone ne sont pas à reprendre tels quels — la logique est à réimplémenter dans l'infrastructure MMS existante. Les clés API (`GEMINI_API_KEY`, `PERPLEXITY_API_KEY`) sont transmises **séparément par email sécurisé**.
 
 ---
 
@@ -20,7 +20,7 @@ Le module VISA permet aux étudiants d'évaluer leur éligibilité pour obtenir 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (Next.js)                     │
+│                    Frontend (React/TS)                      │
 │  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  Test UI      │  │  Results UI  │  │   Chatbot UI     │  │
 │  └───────────────┘  └──────────────┘  └──────────────────┘  │
@@ -39,7 +39,7 @@ Le module VISA permet aux étudiants d'évaluer leur éligibilité pour obtenir 
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Scraper (Port 3001)                       │
+│                    Scraper (serveur/) ← CE QUE VOUS RECEVEZ │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │     Gemini API → Country Requirements DB             │   │
 │  └──────────────────────────────────────────────────────┘   │
@@ -47,7 +47,7 @@ Le module VISA permet aux étudiants d'évaluer leur éligibilité pour obtenir 
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    MongoDB                                   │
+│                    MongoDB MMS (votre DB)                    │
 │  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  Users        │  │Submissions   │  │Country           │  │
 │  │               │  │              │  │Requirements      │  │
@@ -61,10 +61,10 @@ Le module VISA permet aux étudiants d'évaluer leur éligibilité pour obtenir 
 |-----------------|-----------------|-------------|
 | Scoring | 100% mathématique | Mixte (math + IA pour briefing) |
 | Questions | À choix fixes | Choix + entrées texte + numériques |
-| Budget | Valeur fixe | Texte libre (à adapter) |
-| Sources de données | Statiques | Scraper dynamique |
-| Chatbot | Non | Oui (avec limitation) |
-| DB | MMS existante | DB séparée (à migrer) |
+| Budget | Valeur fixe | Comparaison dynamique avec seuils pays |
+| Sources de données | Statiques | Scraper dynamique (Gemini) |
+| Chatbot | Non | Oui (avec limitation 100 messages/user) |
+| DB | MMS existante | MMS existante (même DB, collections étendues) |
 
 ### 1.4 ⚠️ IMPORTANT - Langue des questions
 
@@ -88,11 +88,13 @@ Le test comprend **23 questions** organisées en 6 catégories :
 | Catégorie | Questions | Poids total |
 |-----------|-----------|-------------|
 | Personnel | Q4-Q6 | 25 pts |
-| Éducation | Q8, Q10-Q12 | 20 pts |
+| Éducation | Q8, Q10-Q12 | 21 pts |
 | Langue | Q9 | 8 pts |
 | Projet | Q13-Q15 | 14 pts |
-| Finance | Q16-Q20 | 33 pts |
-| **Total** | **20 questions scorées** | **100 pts** |
+| Finance | Q16-Q20 | 35 pts |
+| **Total scoré** | **20 questions** | **~103 pts → normalisé sur 100** |
+
+> Le score est normalisé : `Score final = (points obtenus / points max atteints) × 100`
 
 ### 2.1 Format attendu par le Backoffice MMS
 
@@ -106,34 +108,43 @@ Le backoffice MMS utilise un Builder avec la structure suivante :
   "code": "Q_unique_key",
   "score": 10,
   "description": "Description FR",
+  "description_en": "Description EN",
   "category": "personal",
+  "type": "single_choice",
   "options": [
     {
       "title": "Option FR",
       "title_en": "Option EN",
       "code": "OPT_01",
-      "score": 10
+      "score": 80
     }
   ]
 }
 ```
 
-**Voir `doc/MMS_BUILDER_STRUCTURE.md` pour la structure complète.**
+> ⚠️ **Les scores des options sont sur 0-100 (pourcentage).**  
+> Score final question = (score option / 100) × points max de la question  
+> Ex: option score=80, question score=10 → (80/100) × 10 = **8 pts**
 
-### 2.1 Types de questions
+**Voir `doc/MMS_BUILDER_STRUCTURE.md` pour la structure complète et les wireframes backoffice.**
 
-- **single_choice** : Une réponse parmi plusieurs options
-- **multi_choice** : Plusieurs réponses possibles
-- **boolean** : Oui/Non
-- **number** : Entrée numérique
-- **text** : Texte libre (non scoré, informationnel)
+### 2.2 Types de questions
 
-### 2.2 Questions conditionnelles
+- **single_choice** : Une réponse parmi plusieurs options (Q4, Q5, Q6, Q8, Q9, Q12, Q13, Q16, Q19)
+- **multi_choice** : Plusieurs réponses possibles (Q17 — sources de financement)
+- **boolean** : Oui/Non (Q10, Q11, Q14, Q15, Q20)
+- **number** : Entrée numérique (Q18 — budget annuel)
+- **text** : Texte libre, non scoré (Q9bis — détails test langue)
+
+### 2.3 Questions conditionnelles
 
 Certaines questions s'affichent uniquement selon la réponse précédente :
-- Q3bis (autorisation parentale) : uniquement si Q3 = "Oui" (mineur)
-- Q3ter (tranche d'âge) : uniquement si Q3 = "Non" (majeur)
-- Q9bis (détails test langue) : uniquement si Q9 = "Oui"
+
+| Question | Condition d'affichage | Type | Poids |
+|----------|-----------------------|------|-------|
+| Q3bis (autorisation parentale) | Q3 = "Oui" (mineur) | single_choice | 0 |
+| Q3ter (tranche d'âge) | Q3 = "Non" (majeur) | single_choice | 0 |
+| Q9bis (détails test langue) | Q9 = "Oui - au niveau exigé ou +" | text | 0 |
 
 ---
 
@@ -156,14 +167,14 @@ scoringRules: {
   "Jamais": 8,
   "Déjà obtenu": 10,
   "Déjà refusé - motif corrigé": 6,
-  "Déjà refusé - non corrigé": 0
+  "Déjà refusé - non corrigé": 0  // ← HARD FAIL
 }
-// Points = (scoringRules[réponse] / max) × weight
+// Points = scoringRules[réponse]  (déjà en points absolus, pas en %)
 
-// Exemple Q8 (Admission) - poids 11
+// Exemple Q8 (Admission) - poids 12
 scoringRules: {
-  "Admission définitive": 11,
-  "Pré-admission": 8,
+  "Admission définitive": 12,
+  "Pré-admission avec conditions réalistes": 8,
   "Non": 0
 }
 ```
@@ -174,48 +185,47 @@ if (réponse === true) points = weight
 else points = 0
 ```
 
-**Type 3 : Numérique avec comparaison**
+**Type 3 : Numérique avec comparaison dynamique (Q18 — Budget)**
 ```javascript
-// Exemple Q18 (Budget annuel)
+// Comparaison avec min_annual_eur récupéré du scraper pour le pays cible
 ratio = montantUtilisateur / montantRequisPays
-if (ratio >= 1) points = 10
-else if (ratio >= 0.8) points = 6
-else if (ratio >= 0.6) points = 3
-else points = 0 + hardFail
+if (ratio >= 1)   points = 10        // Suffisant
+else if (ratio >= 0.8) points = 6    // Légèrement sous le seuil
+else if (ratio >= 0.6) points = 3    // Insuffisant
+else { points = 0; hardFail = true } // Bloquant → score max = 40
 ```
 
-**Type 4 : Multi-choice avec cap**
+**Type 4 : Multi-choice avec plafond (Q17 — Sources de financement)**
 ```javascript
-// Exemple Q17 (Sources de financement)
-score = 5 si sources fiables (épargne, parents, bourse)
-score = 3 si sources moyennes (prêt, parrain)
-score = 1 sinon
+score = 5  si sources fiables (épargne, parents, bourse)
+score = 3  si sources moyennes (prêt, parrain)
+score = 1  sinon
 ```
 
 ### 3.3 Points bloquants (Hard Fails)
 
-Certains critères provoquent un **échec automatique** :
+Certains critères provoquent un **échec automatique** — le score est plafonné à **40/100** :
 
-| Condition | Conséquence |
-|-----------|-------------|
-| Refus de visa non corrigé | Score max = 40/100 |
-| Antécédents migratoires graves | Score max = 40/100 |
-| Casier judiciaire grave | Score max = 40/100 |
-| Mineur sans autorisation parentale | Score max = 40/100 |
-| Budget < 60% du requis | Score max = 40/100 |
+| Condition | Réponse déclenchante |
+|-----------|----------------------|
+| Refus de visa non corrigé | Q4 = "Déjà refusé - non corrigé" |
+| Antécédents migratoires graves | Q5 = "Oui - grave (expulsion, interdiction, fraude)" |
+| Casier judiciaire grave | Q6 = "Oui - grave (violence, fraude, immigration)" |
+| Mineur sans autorisation parentale | Q3 = "Oui" ET Q3bis = "Non" |
+| Budget < 60% du requis | Q18 : ratio < 0.6 |
 
 ### 3.4 Seuils de statut
 
-| Score | Statut | Signification |
-|-------|--------|---------------|
-| ≥ 80% | ELIGIBLE | Profil solide |
-| 65-79% | MITIGE | Profil moyen avec points à améliorer |
-| 50-64% | FAIBLE | Manque des critères importants |
-| < 50% | A_RISQUE | Risque élevé de refus |
+| Score normalisé | Statut | Signification |
+|-----------------|--------|---------------|
+| ≥ 80% | `ELIGIBLE` | Profil solide, forte chance d'obtention |
+| 65–79% | `MITIGE` | Profil moyen avec points à améliorer |
+| 50–64% | `FAIBLE` | Manque des critères importants |
+| < 50% ou hard fail | `A_RISQUE` | Risque élevé de refus |
 
 ---
 
-## 4. Scraper d'exigences pays
+## 4. Scraper d'exigences pays (`serveur/`)
 
 ### 4.1 Fonctionnement
 
@@ -223,11 +233,12 @@ Le scraper utilise **Google Gemini 2.0 Flash** pour extraire les exigences offic
 
 **Configuration requise :**
 ```env
-GEMINI_API_KEY= clé API Gemini
-MONGODB_URI= connexion MongoDB
+GEMINI_API_KEY=AIzaSy...   # fournie par email sécurisé
+MONGODB_URI=...            # URI de la DB MMS
+PORT=3001
 ```
 
-**Pays couverts :** USA, Canada, Australie, UK, France, Allemagne, Espagne, Italie, Finlande, Irlande, Danemark, Norvège, Suède, Pologne, Malte, Belgique, Chine, Turquie, Corée du Sud
+**Pays couverts (19) :** USA, Canada, Australie, UK, France, Allemagne, Espagne, Italie, Finlande, Irlande, Danemark, Norvège, Suède, Pologne, Malte, Belgique, Chine, Turquie, Corée du Sud
 
 ### 4.2 Données extraites
 
@@ -252,27 +263,30 @@ Pour chaque pays, le scraper récupère :
     "mandatory": ["Passeport", "Photos", "Assurance"],
     "optional": ["Attestation logement"]
   },
-  "fees": {
-    "visa_fee_eur": 99,
-    "service_fee_eur": 50
-  },
-  "processing": {
-    "average_delay_days": 30,
-    "appointment_required": true
-  }
+  "fees": { "visa_fee_eur": 99, "service_fee_eur": 50 },
+  "processing": { "average_delay_days": 30, "appointment_required": true }
 }
 ```
 
-### 4.3 Intégration MMS
+### 4.3 Endpoints REST du scraper
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/scrape/:country` | Scraper un pays (slug: `france`, `usa`...) |
+| POST | `/scrape/all` | Lancer le scraping complet en arrière-plan |
+| GET | `/requirements/:country` | Récupérer les données d'un pays |
+| GET | `/requirements` | Lister tous les pays disponibles |
+| GET | `/scraping-report` | Rapport de la dernière exécution |
+| GET | `/health` | État du service |
+
+### 4.4 Intégration MMS
 
 **Options :**
 1. **Microservice séparé** : Garder le scraper sur un port dédié (3001)
-2. **Worker MMS** : Intégrer dans les tâches planifiées MMS
-3. **Cron job** : Exécution hebdomadaire (dimanche 21h30)
+2. **Worker MMS** : Intégrer dans les tâches planifiées MMS ← **Recommandé**
+3. **Cron job standalone** : Exécution hebdomadaire (lundi ~13h heure Paris)
 
-**Recommandation :** Option 2 pour une gestion centralisée
-
-### 4.4 Prompt Gemini utilisé
+### 4.5 Prompt Gemini utilisé
 
 ```
 Recherche sur le web les exigences officielles pour un visa étudiant pour {PAYS}.
@@ -293,10 +307,10 @@ Réponds uniquement en JSON avec la structure exacte définie dans le code.
 
 ### 5.1 Configuration
 
-**API utilisée :** Perplexity AI (modèles `sonar-pro` ou `sonar-32k-online`)
+**API utilisée :** Perplexity AI (modèle `sonar-pro`)
 
 ```env
-PERPLEXITY_API_KEY= clé API Perplexity
+PERPLEXITY_API_KEY=pplx-...   # fournie par email sécurisé
 ```
 
 ### 5.2 Prompt de briefing
@@ -307,6 +321,8 @@ Analyse les données du candidat :
 
 - Score global : {score}/100
 - Statut : {status}
+- Points bloquants : {hardFails}
+- Points d'attention : {reasons}
 - Réponses : {answers}
 - Exigences officielles : {requirements}
 
@@ -316,9 +332,8 @@ Génère un briefing structuré :
 ## Points à améliorer
 ## Recommandations clés
 
-IMPORTANT :
-- Si le budget < minimum requis, indique-le comme point critique
-- Ne mentionne jamais de manque d'informations
+RÈGLE CRITIQUE : Si le budget déclaré < minimum requis, indiquer que le visa sera refusé.
+Ne jamais valider un budget insuffisant. Ne jamais mentionner un manque d'informations.
 ```
 
 ### 5.3 Intégration MMS
@@ -333,43 +348,42 @@ Le briefing est généré **après la soumission du test** et stocké dans la so
 
 ### 6.1 Fonctionnement
 
-Le chatbot répond aux questions des étudiants sur les visas.
+Le chatbot répond aux questions des étudiants sur les visas (contexte du test, exigences pays, etc.).
 
 ### 6.2 Limitations à implémenter
 
 | Limite | Valeur | Message d'avertissement |
 |--------|--------|-------------------------|
-| Questions par utilisateur | 100 | "Il vous reste {N} questions" |
-| Avertissement | 10 restantes | Afficher bannière |
-| Blocage | 0 | "Quota atteint" |
+| Questions par utilisateur | **100 total** (cumulatif) | — |
+| Avertissement quota | **À 2 restantes** | `"Il vous reste seulement 2 questions disponibles avec l'assistant."` |
+| Blocage | 0 restantes | `"Vous avez épuisé votre quota d'assistance. Contactez un conseiller MMS."` |
 
 ### 6.3 Intégration MMS
 
-- Stocker le compteur dans la collection `users`
-- Créer une nouvelle collection `chatbot_logs` pour l'historique
-- Middleware pour vérifier le quota avant chaque message
+- Stocker le compteur dans la collection `users` (champ `chatbot_quota.used`)
+- Créer une collection `chatbot_logs` pour l'historique
+- Middleware de vérification du quota avant chaque message
 
 ---
 
-## 7. Limitations d'utilisation
+## 7. Limitations d'utilisation du test
 
 ### 7.1 Quotas de tests
 
-| Période | Limite | À implémenter |
-|---------|--------|---------------|
-| Semaine | 3 tests | Compteur `weekly_tests_count` |
-| Mois | 10 tests | Compteur `monthly_tests_count` |
-| Total | illimité | - |
+| Période | Limite | Compteur |
+|---------|--------|----------|
+| Semaine | **3 tests** | `weekly_count` (reset lundi minuit) |
+| Mois | **10 tests** | `monthly_count` (reset 1er du mois) |
 
 ### 7.2 Messages d'avertissement
 
 ```
-// Afficher quand 2 tests restants
+// Afficher quand 2 tests restants cette semaine
 "Attention : Il vous reste seulement 2 tests visa cette semaine."
 
 // Bloquer quand limite atteinte
 "Vous avez atteint votre limite de tests visa pour cette période.
- Réessayez le {date}."
+ Réessayez le {date_reset}."
 ```
 
 ### 7.3 Stockage des compteurs
@@ -382,6 +396,10 @@ Dans le document User MMS :
     "weekly_reset": "2026-04-14",
     "monthly_count": 8,
     "monthly_reset": "2026-05-01"
+  },
+  "chatbot_quota": {
+    "used": 98,
+    "limit": 100
   }
 }
 ```
@@ -390,41 +408,42 @@ Dans le document User MMS :
 
 ## 8. Intégration Base de Données MMS
 
+**Règle absolue : utiliser la base de données MMS existante. Ne pas créer une nouvelle DB.**
+
 ### 8.1 Collections à créer/étendre
 
 | Collection locale | Collection MMS | Action |
 |-------------------|----------------|--------|
-| User | users | Ajouter champs `visa_test_limits` |
-| Question | eligibilitytests | Ajouter `testType: "VISA"` |
-| TestSubmission | eligibilityassessments | Ajouter `testType: "VISA"` |
-| CountryRequirement | country_requirements | Créer nouvelle collection |
-| ChatbotLog | chatbot_logs | Créer nouvelle collection |
+| User | `users` | Ajouter `visa_test_limits`, `chatbot_quota` |
+| Question | `eligibilitytests` | Ajouter `testType: "VISA"` |
+| TestSubmission | `eligibilityassessments` | Ajouter `testType: "VISA"`, `briefing`, `hardFails` |
+| CountryRequirement | `country_requirements` | **Créer** |
+| — | `chatbot_logs` | **Créer** |
 
 ### 8.2 Script de migration
 
 ```javascript
-// À exécuter dans MMS
-db.eligibilitytests.insertMany([
-  // ... questions JSON complètes (voir section 9)
-]);
-
-db.country_requirements.insertMany([
-  // ... données scraper
-]);
+// Créer le test VISA dans eligibilitytests
+db.eligibilitytests.insertOne({
+  name: "Test d'Éligibilité VISA",
+  testType: "VISA",
+  isActive: true,
+  questions: [ /* voir docs/COMPLETE_VISA_QUESTIONS.json */ ]
+});
 ```
 
 ### 8.3 Modifications du schéma User
 
 ```javascript
-// Ajouter dans users MMS
+// Ajouter dans le schéma users MMS
 visa_test_limits: {
-  weekly_count: { type: Number, default: 0 },
-  weekly_reset: { type: Date },
+  weekly_count:  { type: Number, default: 0 },
+  weekly_reset:  { type: Date },
   monthly_count: { type: Number, default: 0 },
   monthly_reset: { type: Date }
 },
 chatbot_quota: {
-  used: { type: Number, default: 0 },
+  used:  { type: Number, default: 0 },
   limit: { type: Number, default: 100 }
 }
 ```
@@ -433,23 +452,23 @@ chatbot_quota: {
 
 ## 9. Questions complètes (JSON)
 
-Voir le fichier `docs/COMPLETE_VISA_QUESTIONS.json` pour le JSON complet à insérer dans la base de données MMS.
+Voir le fichier **`docs/COMPLETE_VISA_QUESTIONS.json`** pour le JSON complet à insérer en base.
 
 ---
 
 ## 10. Variables d'environnement requises
 
 ```env
-# Scraper
-GEMINI_API_KEY=xxx
+# Scraper (serveur/)
+GEMINI_API_KEY=AIzaSy...          # fournie par email sécurisé
 
-# Briefing IA
-PERPLEXITY_API_KEY=xxx
+# Briefing IA (backend MMS)
+PERPLEXITY_API_KEY=pplx-...       # fournie par email sécurisé
 
 # Base de données
-MONGODB_URI=mongodb+srv://...
+MONGODB_URI=mongodb+srv://...     # URI DB MMS
 
-# Configuration
+# Limites (configurables)
 VISA_TEST_WEEKLY_LIMIT=3
 VISA_TEST_MONTHLY_LIMIT=10
 CHATBOT_QUOTA_PER_USER=100
@@ -459,68 +478,108 @@ CHATBOT_QUOTA_PER_USER=100
 
 ## 11. Checklist d'intégration MMS
 
-- [ ] Créer les collections DB nécessaires
-- [ ] Migrer les 23 questions dans `eligibilitytests`
-- [ ] Ajouter le champ `testType: "VISA"` dans les schémas
-- [ ] Implémenter le moteur de scoring dans `EligibilityAssessment`
-- [ ] Intégrer le scraper (microservice ou worker)
-- [ ] Configurer les clés API (Gemini, Perplexity)
-- [ ] Implémenter les quotas (tests + chatbot)
-- [ ] Créer l'UI Backoffice (onglet VISA)
-- [ ] Créer l'UI Frontend student
-- [ ] Tester le flux complet
+### Backend
+- [ ] Créer la collection `country_requirements` en DB MMS
+- [ ] Déployer le scraper `serveur/` (microservice ou worker)
+- [ ] Configurer le cron hebdomadaire du scraper (lundi)
+- [ ] Migrer les 23 questions dans `eligibilitytests` avec `testType: "VISA"`
+- [ ] Implémenter le moteur de scoring (copier `eligibilityEngine.js`)
+- [ ] Intégrer l'appel Perplexity pour le briefing post-test
+- [ ] Implémenter les quotas de tests (3/sem, 10/mois) sur POST submit
+- [ ] Implémenter le quota chatbot (100 msgs, alerte à 2 restants)
+- [ ] Étendre le schéma `users` avec les compteurs de quota
+- [ ] Configurer les clés API dans les variables d'environnement
+
+### Backoffice
+- [ ] Ajouter `"VISA"` comme nouveau Type dans le dropdown Eligibility Tests
+- [ ] Créer le test via le Builder avec les 23 questions (FR + EN)
+- [ ] Configurer les scores des options (échelle 0-100)
+- [ ] Associer les Study Levels (Bac+3, Bac+4, Bac+5)
+
+### Frontend
+- [ ] Créer l'onglet VISA dans le backoffice admin
+- [ ] Créer la page de test étudiant (questions conditionnelles, types mixtes)
+- [ ] Afficher les résultats avec statut coloré (ELIGIBLE / MITIGE / FAIBLE / A_RISQUE)
+- [ ] Afficher le briefing Markdown post-soumission
+- [ ] Afficher les messages de quota (tests + chatbot)
+
+### Tests
+- [ ] Scoring correct (utiliser `verify-scoring.js` à la racine)
+- [ ] Briefing IA généré correctement
+- [ ] Quotas tests et chatbot respectés
+- [ ] Scraper fonctionnel pour tous les 19 pays
+- [ ] Flux complet end-to-end
 
 ---
 
 ## 12. Points d'attention
 
-### 12.1 Budget texte → numérique
+### 12.1 Q9bis — Test langue en texte libre
 
-Le champ Q18_budget est actuellement un texte libre. Pour MMS :
-- Soit le convertir en input numérique
-- Soit extraire la valeur avec une regex
+Q9bis est un champ texte libre ("DELF B2 — 72/100", "IELTS 6.5"). Ce champ **n'est pas scoré mathématiquement** (poids = 0). Il est transmis à Perplexity pour contextualiser le briefing.
 
-### 12.2 Test langue texte
+**Recommandation MMS :** Remplacer à terme par deux champs : `select` (nom du test) + `number` (score).
 
-Q9bis_language_test_details est un texte libre ("DELF B2 - 72/100").
-Pas de scoring automatique possible actuellement.
+### 12.2 Q18 — Budget : comparaison dynamique pays
 
-### 12.3 Poids différents
+Le scoring de Q18 dépend de `min_annual_eur` issu du scraper. Si le scraper n'a pas encore tourné pour un pays → valeur de secours = **10 000€**. Afficher un avertissement si les données pays ont plus de 30 jours.
 
-Le scoring VISA fonctionne sur 118 points max, contrairement au test MMS actuel.
-Adapter l'affichage en pourcentage.
+### 12.3 Pondération différente
 
-### 12.4 UI à refaire
+Le scoring VISA utilise des poids fixes liés à la logique métier. Ne pas les exposer comme éditables via le builder — risque de casser la cohérence du score.
 
-L'UI actuelle ne correspond pas au style MMS. Prévoir une refonte complète.
+### 12.4 UI à créer
+
+L'UI actuelle ne correspond pas au style MMS. Elle est à recréer en tenant compte : questions conditionnelles, types de champs mixtes, affichage briefing Markdown, statuts colorés.
 
 ---
 
 ## 13. API Endpoints
 
-### 13.1 Backend
+### Backend
 
 ```
-POST /api/visa/test/submit    - Soumettre le test
-GET  /api/visa/test/my        - Liste de mes tests
-GET  /api/visa/test/:id       - Détails d'un test
-GET  /api/visa/briefing/:id   - Générer le briefing IA
+POST /api/visa/test/submit      - Soumettre le test (calcul score + génération briefing)
+GET  /api/visa/test/my          - Liste de mes tests
+GET  /api/visa/test/:id         - Détails d'un test
+GET  /api/visa/briefing/:id     - Régénérer le briefing IA
+POST /api/visa/chatbot/ask      - Poser une question (vérifie quota)
 ```
 
-### 13.2 Scraper
+### Scraper
 
 ```
-GET  /scrape/:country         - Scraper un pays
-POST /scrape/all              - Scraper tous les pays
-GET  /requirements/:country   - Exigences d'un pays
-GET  /requirements            - Liste des pays disponibles
+GET  /scrape/:country           - Scraper un pays manuellement
+POST /scrape/all                - Scraper tous les pays (arrière-plan)
+GET  /requirements/:country     - Exigences d'un pays
+GET  /requirements              - Liste des pays disponibles
+GET  /scraping-report           - Rapport de la dernière exécution
+GET  /health                    - État du service
 ```
 
 ---
 
-## 14. Contact
+## 14. Contact & Références
 
-Pour toute question technique sur cette intégration, consultez le code source dans :
-- `backend/controllers/testController.js` - Logique de soumission
-- `backend/utils/eligibilityEngine.js` - Moteur de scoring
-- `serveur/server.js` - Scraper
+Pour toute question technique sur cette intégration :
+- `backend/controllers/testController.js` — Logique de soumission + appel Perplexity
+- `backend/utils/eligibilityEngine.js` — Moteur de scoring complet
+- `serveur/server.js` — Scraper Gemini + endpoints REST
+- `docs/COMPLETE_VISA_QUESTIONS.json` — Questions JSON complètes
+- `doc/MMS_BUILDER_STRUCTURE.md` — Format Builder MMS avec wireframes
+
+---
+
+## 15. Credentials API (transmises par email sécurisé)
+
+| Variable | Service | Note |
+|----------|---------|------|
+| `GEMINI_API_KEY` | Google Gemini 2.0 Flash (scraper) | Ne jamais committer |
+| `PERPLEXITY_API_KEY` | Perplexity sonar-pro (briefing) | Ne jamais committer |
+
+> Ces clés sont transmises par email sécurisé séparé. Les stocker uniquement dans les variables d'environnement du serveur MMS. Ne jamais les inclure dans le code source ou les commits.
+
+---
+
+*Version : 2.1 — Avril 2026*  
+*Sources : HackSpice (projet standalone) → MatchMySchool (intégration)*
