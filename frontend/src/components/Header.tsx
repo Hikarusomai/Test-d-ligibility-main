@@ -28,9 +28,9 @@ function Header({
     const { i18n, t } = useTranslation();
     const currentLang = i18n.language || 'fr';
 
-    const toggleLanguage = () => {
+    const toggleLanguage = async () => {
         const newLang = currentLang === 'fr' ? 'en' : 'fr';
-        i18n.changeLanguage(newLang);
+        await i18n.changeLanguage(newLang);
         localStorage.setItem('i18nextLng', newLang);
         window.location.reload();
     };

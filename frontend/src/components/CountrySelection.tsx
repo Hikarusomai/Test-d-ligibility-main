@@ -118,7 +118,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                             : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300'
                     }`}
                 >
-                    Tous ({ORIGIN_COUNTRIES.length})
+                    {t('countrySelection.allCountries')} ({ORIGIN_COUNTRIES.length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('mena')}
@@ -129,7 +129,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F97316' }}></div>
-                    MENA ({getOriginCountriesByRegion('mena').length})
+                    {t('countrySelection.mena')} ({getOriginCountriesByRegion('mena').length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('africa')}
@@ -140,7 +140,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }}></div>
-                    Afrique ({getOriginCountriesByRegion('africa').length})
+                    {t('countrySelection.africa')} ({getOriginCountriesByRegion('africa').length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('asia')}
@@ -151,7 +151,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }}></div>
-                    Asie ({getOriginCountriesByRegion('asia').length})
+                    {t('countrySelection.asia')} ({getOriginCountriesByRegion('asia').length})
                 </button>
             </div>
 
@@ -163,7 +163,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                         {/* Image de la world map */}
                         <img
                             src="/assets/world-map.png"
-                            alt="Carte du monde"
+                            alt={t('countrySelection.carteDuMonde')}
                             className={`absolute inset-0 w-full h-full ${isDark ? 'opacity-80 brightness-90' : 'opacity-90'}`}
                             style={{ objectFit: 'contain' }}
                         />
@@ -236,7 +236,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     </svg>
                     <input
                         type="text"
-                        placeholder="Rechercher un pays..."
+                        placeholder={t('countrySelection.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={`w-full pl-12 pr-4 py-3 rounded-full border-2 transition-colors ${
