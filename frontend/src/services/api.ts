@@ -20,15 +20,19 @@ export type QuestionType = 'number' | 'boolean' | 'single_choice' | 'multi_choic
 export interface Question {
     _id: string;
     label?: string;
+    labelEn?: string;
     text?: string;
+    textEn?: string;
     key: string;
     category: string;
     type: QuestionType;
     options?: string[];
+    optionsEn?: string[];
     weight: number;
     isRequired: boolean;
     order: number;
     description?: string;
+    descriptionEn?: string;
     required?: boolean;
     minSelections?: number;
     maxSelections?: number;

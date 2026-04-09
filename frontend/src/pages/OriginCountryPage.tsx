@@ -16,7 +16,8 @@ function OriginCountryPage({ onOriginSelect, onBack, isDark = false, totalQuesti
   const [question, setQuestion] = useState<Question | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
 
   useEffect(() => {
     fetchFirstQuestion();
@@ -42,8 +43,8 @@ const fetchFirstQuestion = async () => {
     }, 700);
   };
 
-  const questionTitle = question?.label || question?.text || '';
-  const questionDescription = question?.description || '';
+  const questionTitle = (isEn && question?.labelEn) ? question.labelEn : (question?.label || question?.text || '');
+  const questionDescription = (isEn && question?.descriptionEn) ? question.descriptionEn : (question?.description || '');
   const currentQuestionOrder = question?.order || 1;
   const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
 

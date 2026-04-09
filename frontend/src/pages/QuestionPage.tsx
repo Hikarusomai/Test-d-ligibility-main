@@ -31,7 +31,8 @@ function QuestionPage({
     const [isExiting, setIsExiting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isEn = i18n.language === 'en';
     const [totalQuestions, setTotalQuestions] = useState(propTotalQuestions);
 
     useEffect(() => {
@@ -84,8 +85,8 @@ function QuestionPage({
         }, 700);
     };
 
-    const questionTitle = question?.label || question?.text || '';
-    const questionDescription = question?.description || '';
+    const questionTitle = (isEn && question?.labelEn) ? question.labelEn : (question?.label || question?.text || '');
+    const questionDescription = (isEn && question?.descriptionEn) ? question.descriptionEn : (question?.description || '');
     const currentQuestionOrder = question?.order ?? questionOrder ?? 1;
     const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
     const translateClass = exitDirection === 'left' ? '-translate-x-full' : 'translate-x-full';
@@ -170,7 +171,7 @@ function QuestionPage({
                         <>
                             {question.type === "single_choice" && (
                                 <SingleChoiceQuestion
-                                    options={Array.isArray(question.options) ? question.options : []}
+                                    options={(isEn && question.optionsEn) ? question.optionsEn : (question.options ?? [])}
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
                                 />
@@ -178,13 +179,13 @@ function QuestionPage({
 
                             {(question.type === "multi_choice") && (
                                 <MultipleChoiceQuestion
-                                    options={Array.isArray(question.options) ? question.options : []}
+                                    options={(isEn && question.optionsEn) ? question.optionsEn : (question.options ?? [])}
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
                                     minSelections={question.minSelections ?? 1}
                                     maxSelections={question.maxSelections}
                                     allowCustomAnswer={question.allowCustomAnswer ?? false}
-                                    customAnswerPlaceholder={question.customAnswerPlaceholder ?? "Autre (précisez)..."}
+                                    customAnswerPlaceholder={question.customAnswerPlaceholder ?? (isEn ? "Other (specify)..." : "Autre (précisez)...")}
                                 />
                             )}
 
