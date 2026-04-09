@@ -73,7 +73,7 @@ const COUNTRY_POSITIONS: Record<string, { top: number; left: number }> = {
 };
 
 function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [selectedRegion, setSelectedRegion] = useState<'all' | 'mena' | 'africa' | 'asia'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
@@ -211,7 +211,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                                     className="px-2 py-1 rounded text-xs font-semibold text-white shadow-lg"
                                                     style={{ backgroundColor: regionColor }}
                                                 >
-                                                    {country.name}
+                                                    {i18n.language === 'en' ? country.nameEn : country.name}
                                                 </div>
                                             </div>
                                         )}

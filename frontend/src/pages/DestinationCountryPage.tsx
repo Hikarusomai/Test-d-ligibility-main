@@ -28,7 +28,7 @@ function DestinationSelection({
     const [isLoading, setIsLoading] = useState(true);
     const [isExiting, setIsExiting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         fetchQuestion();
@@ -281,7 +281,7 @@ function DestinationSelection({
                                             <div className="flex items-center gap-4">
                                                 <span className="text-5xl">{country.flag}</span>
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-neutral-900">{country.name}</h3>
+                                                    <h3 className="text-xl font-bold text-neutral-900">{i18n.language === 'en' ? country.nameEn : country.name}</h3>
                                                     <span className="text-sm px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">{country.iso3}</span>
                                                 </div>
                                             </div>
