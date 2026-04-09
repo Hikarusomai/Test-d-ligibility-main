@@ -220,7 +220,7 @@ function QuestionPage({
                                                 : 'border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-brand-primary hover:text-white hover:border-brand-primary'
                                         }`}
                                     >
-                                        Oui
+                                        {t('common.yes')}
                                     </button>
                                     <button
                                         onClick={() => handleAnswerInternal(false)}
@@ -230,7 +230,7 @@ function QuestionPage({
                                                 : 'border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-brand-primary hover:text-neutral-400 hover:border-brand-primary'
                                         }`}
                                     >
-                                        Non
+                                        {t('common.no')}
                                     </button>
                                 </div>
                             )}
