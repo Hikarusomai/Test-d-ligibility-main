@@ -26,7 +26,7 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
       onStartTest();
     } catch (err) {
       console.error('Erreur lors de la connexion au backend:', err);
-      setError('Impossible de se connecter au serveur. Veuillez vérifier que le backend est démarré et réessayer.');
+      setError(t('home.connectionErrorMsg'));
       setIsLoading(false);
     }
   };
