@@ -203,7 +203,7 @@ function QuestionPage({
                                 <NumberQuestion
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
-                                    placeholder={question.placeholder ?? "Entrez un nombre..."}
+                                    placeholder={question.placeholder ?? t('question.enterNumberFallback')}
                                     min={question.min}
                                     max={question.max}
                                     unit={question.unit}

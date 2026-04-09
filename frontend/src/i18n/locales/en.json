@@ -94,7 +94,14 @@
     "preparatoryTraining": "Preparatory training",
     "preparatoryTrainingDesc": "Take a preparatory course or intensive language courses to increase your chances.",
     "advisor": "Orientation advisor",
-    "advisorDesc": "Consult a specialized advisor to build a solid file."
+    "advisorDesc": "Consult a specialized advisor to build a solid file.",
+    "financialProofLabel": "Proof of funds",
+    "processingTimeLabel": "Processing time",
+    "languageTestLabel": "Language tests",
+    "noData": "No data available",
+    "returnDashboard": "Return to Dashboard",
+    "generatingBriefing": "Generating your personalized briefing with AI...",
+    "pleaseWait": "This may take a few seconds"
   },
   "dashboard": {
     "title": "My Dashboard",
@@ -218,6 +225,7 @@
     "validate": "Validate",
     "validateCount": "Validate ({{count}})",
     "enterNumber": "Please enter a number",
+    "enterNumberFallback": "Enter a number...",
     "numberMustBeValid": "Please enter a valid number",
     "valueMustBeGreaterOrEqual": "Value must be greater than or equal to {{min}}",
     "valueMustBeLessOrEqual": "Value must be less than or equal to {{max}}",

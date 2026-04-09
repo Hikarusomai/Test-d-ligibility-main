@@ -292,7 +292,7 @@ function DestinationSelection({
                                             )}
                                         </div>
                                         <span className="inline-block text-xs px-3 py-1 rounded-full mb-4 bg-blue-50 text-blue-600">
-                                            • {country.region === 'north-america' ? 'Amérique & Océanie' : country.region === 'europe' ? 'Europe' : 'Asie'}
+                                            • {country.region === 'north-america' ? t('countrySelection.northAmerica') : country.region === 'europe' ? t('countrySelection.europe') : t('countrySelection.asiaRegion')}
                                         </span>
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-3">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +17,7 @@ interface BriefingData {
 }
 
 export default function Briefing() {
+    const { t } = useTranslation();
     const { submissionId } = useParams();
     const [briefing, setBriefing] = useState<BriefingData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -52,8 +54,8 @@ export default function Briefing() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-lg text-gray-600">Génération de votre briefing personnalisé avec l'IA...</p>
-                    <p className="text-sm text-gray-500 mt-2">Cela peut prendre quelques secondes</p>
+                    <p className="text-lg text-gray-600">{t('result.generatingBriefing')}</p>
+                    <p className="text-sm text-gray-500 mt-2">{t('result.pleaseWait')}</p>
                 </div>
             </div>
         );
@@ -63,13 +65,13 @@ export default function Briefing() {
         return (
             <div className="max-w-7xl mx-auto p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <h2 className="text-xl font-bold text-red-800 mb-2">Erreur</h2>
+                    <h2 className="text-xl font-bold text-red-800 mb-2">{t('quiz.error')}</h2>
                     <p className="text-red-600">{error}</p>
                     <button
                         onClick={() => window.location.href = '/dashboard'}
                         className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                        Retour au Dashboard
+                        {t('result.returnDashboard')}
                     </button>
                 </div>
             </div>
@@ -80,7 +82,7 @@ export default function Briefing() {
         return (
             <div className="max-w-7xl mx-auto p-6">
                 <div className="text-center">
-                    <p>Aucune donnée disponible</p>
+                    <p>{t('result.noData')}</p>
                 </div>
             </div>
         );
@@ -102,7 +104,7 @@ export default function Briefing() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span className="font-medium">Retour au Dashboard</span>
+                    <span className="font-medium">{t('result.returnDashboard')}</span>
                 </button>
             </div>
 

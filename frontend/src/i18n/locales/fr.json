@@ -94,7 +94,14 @@
     "preparatoryTraining": "Formation préparatoire",
     "preparatoryTrainingDesc": "Suivez une formation préparatoire ou des cours intensifs de langue pour augmenter vos chances.",
     "advisor": "Conseiller en orientation",
-    "advisorDesc": "Consultez un conseiller spécialisé pour construire un dossier solide."
+    "advisorDesc": "Consultez un conseiller spécialisé pour construire un dossier solide.",
+    "financialProofLabel": "Proof of funds",
+    "processingTimeLabel": "Processing time",
+    "languageTestLabel": "Language tests",
+    "noData": "Aucune donnée disponible",
+    "returnDashboard": "Retour au Dashboard",
+    "generatingBriefing": "Génération de votre briefing personnalisé avec l'IA...",
+    "pleaseWait": "Cela peut prendre quelques secondes"
   },
   "dashboard": {
     "title": "Mon Dashboard",
@@ -218,6 +225,7 @@
     "validate": "Valider",
     "validateCount": "Valider ({{count}})",
     "enterNumber": "Veuillez saisir un nombre",
+    "enterNumberFallback": "Entrez un nombre...",
     "numberMustBeValid": "Veuillez entrer un nombre valide",
     "valueMustBeGreaterOrEqual": "La valeur doit être supérieure ou égale à {{min}}",
     "valueMustBeLessOrEqual": "La valeur doit être inférieure ou égale à {{max}}",
