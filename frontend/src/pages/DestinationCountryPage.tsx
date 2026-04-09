@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DESTINATION_COUNTRIES } from "../data/destination-countries";
+import { ORIGIN_COUNTRIES } from "../data/origin-countries";
 import Button from '../components/Button';
 import { apiService, type Question } from '../services/api';
 
@@ -46,6 +47,24 @@ function DestinationSelection({
             setIsLoading(false);
         }
     };
+
+    // Translate French time/unit words for English mode
+    const translateRequirement = (str: string) => {
+        if (i18n.language !== 'en') return str;
+        return str
+            .replace(/\(compte bloqué\)/gi, '(blocked account)')
+            .replace(/minimum/gi, 'minimum')
+            .replace(/\/an\b/g, '/year')
+            .replace(/\/mois\b/g, '/month')
+            .replace(/\bmois\b/g, 'months')
+            .replace(/\bsemaines?\b/g, 'weeks')
+            .replace(/\bjours?\b/g, 'days')
+            .replace(/\ban\b/g, 'year');
+    };
+
+    const originDisplayName = i18n.language === 'en'
+        ? (ORIGIN_COUNTRIES.find(c => c.name === originCountry)?.nameEn || originCountry)
+        : originCountry;
 
     const filteredCountries = DESTINATION_COUNTRIES.filter(country => {
         const matchesSearch = country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -198,7 +217,7 @@ function DestinationSelection({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span className="font-semibold text-brand-primary">{originCountry}</span>
+                                    <span className="font-semibold text-brand-primary">{originDisplayName}</span>
                                 </div>
                                 <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -299,13 +318,13 @@ function DestinationSelection({
                                                 <svg className="w-5 h-5 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                <span className="font-medium text-neutral-600">{country.requirements.financialProof}</span>
+                                                <span className="font-medium text-neutral-600">{translateRequirement(country.requirements.financialProof)}</span>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <svg className="w-5 h-5 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                <span className="font-medium text-neutral-600">{country.requirements.processingTime}</span>
+                                                <span className="font-medium text-neutral-600">{translateRequirement(country.requirements.processingTime)}</span>
                                             </div>
                                         </div>
                                     </div>
