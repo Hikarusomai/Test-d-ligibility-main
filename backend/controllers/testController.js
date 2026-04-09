@@ -297,16 +297,16 @@ const generateBriefing = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Exigences pays non trouvées' });
         }
 
-        function escapeRegex(str) { return String(str || ‘’).replace(/[.*+?^${}()|[\]\\]/g, ‘\\$&’); }
-        function slugify(str) { return String(str || ‘’).toLowerCase().trim().replace(/\s+/g, ‘-’); }
+        function escapeRegex(str) { return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function slugify(str) { return String(str || '').toLowerCase().trim().replace(/\s+/g, '-'); }
 
-        const lang = req.query.lang || ‘fr’;
-        const isEnRegen = lang === ‘en’;
+        const lang = req.query.lang || 'fr';
+        const isEnRegen = lang === 'en';
         const clientRegen = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
 
         const prompt = isEnRegen ? `
 You are an administrative expert in student visas.
-Here are the candidate’s answers:
+Here are the candidate's answers:
 ${JSON.stringify(submission.answers, null, 2)}
 
 Here are the official requirements for the destination country (${submission.destinationCountry}):
@@ -333,15 +333,15 @@ Sois synthétique, structuré et professionnel.
 `;
 
         const completion = await clientRegen.chat.completions.create({
-            model: ‘sonar-32k-online’,
+            model: 'sonar-32k-online',
             messages: [
                 {
-                    role: ‘system’,
+                    role: 'system',
                     content: isEnRegen
-                        ? ‘You are an orientation assistant for international students.’
-                        : ‘Tu es un assistant d\’orientation pour étudiants internationaux.’
+                        ? 'You are an orientation assistant for international students.'
+                        : 'Tu es un assistant d\'orientation pour étudiants internationaux.'
                 },
-                { role: ‘user’, content: prompt }
+                { role: 'user', content: prompt }
             ]
         });
 
