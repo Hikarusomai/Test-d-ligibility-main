@@ -370,6 +370,7 @@ function App() {
                         </div>
                     </div>
 
+                    {!data.briefing && (
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
                             {t('result.recommendedActions')}
@@ -486,6 +487,7 @@ function App() {
                             )}
                         </div>
                     </div>
+                    )}
 
                     {/* Boutons d'action */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">

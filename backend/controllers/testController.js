@@ -4,6 +4,47 @@ const CountryRequirement = require('../models/CountryRequirement');
 const Question = require('../models/Question');
 const { evaluateEligibility } = require('../utils/eligibilityEngine');
 
+// Translation maps for French reason strings from eligibilityEngine
+const REASONS_EN = {
+    "Moyens mensuels insuffisants.": "Insufficient monthly funds.",
+    "Sources de financement fragiles.": "Weak funding sources.",
+    "Montant sous le seuil (80%+).": "Amount below required threshold (80%+).",
+    "Montant insuffisant (60%+).": "Insufficient amount (below 60% of requirement).",
+    "Montant très insuffisant (<60%).": "Amount critically insufficient (<60% of requirement).",
+    "Refus non corrigé.": "Uncorrected visa refusal.",
+    "Ancien refus corrigé.": "Previous refusal — now corrected.",
+    "Test limite ou expiré.": "Language test borderline or expired.",
+    "Pas de preuve de langue.": "No language proof provided.",
+    "Relevés manquants.": "Missing academic transcripts.",
+    "Preuve de paiement manquante.": "Missing tuition payment proof.",
+    "Gaps non justifiés.": "Unexplained academic gaps.",
+    "Projet partiellement cohérent.": "Partially coherent study project.",
+    "Projet peu cohérent.": "Incoherent study project.",
+    "Procédure officielle non engagée.": "Official process not yet started.",
+    "Intention principale floue.": "Primary intent to study is unclear.",
+    "Garant non documenté.": "Financial guarantor not documented.",
+    "Antécédent migratoire mineur.": "Minor migration history on record.",
+    "Antécédents migratoires graves.": "Serious migration record.",
+    "Casier mineur.": "Minor criminal record.",
+    "Casier grave.": "Serious criminal record.",
+    "Pré-admission uniquement.": "Pre-admission only (no final acceptance).",
+    "Pas encore admis.": "Not yet admitted to a program.",
+};
+const HARD_FAILS_EN = {
+    "Absence d'autorisation parentale ou d'hébergement pour mineur": "Missing parental authorization or accommodation for minor",
+    "Refus de visa non corrigé": "Uncorrected visa refusal",
+    "Antécédents migratoires graves": "Serious migration record",
+    "Casier judiciaire grave": "Serious criminal record",
+    "Financement annuel insuffisant": "Insufficient annual funding",
+};
+function translateReasons(arr, lang) {
+    if (lang !== 'en') return arr;
+    return arr.map(r => REASONS_EN[r] || r);
+}
+function translateHardFails(arr, lang) {
+    if (lang !== 'en') return arr;
+    return arr.map(f => HARD_FAILS_EN[f] || f);
+}
 
 // Import corrigé du SDK Perplexity AI (CommonJS)
 const Perplexity = require('@perplexity-ai/perplexity_ai');
@@ -74,8 +115,8 @@ You are a student visa expert for ${destinationCountry}. Your role is to analyze
 ### CANDIDATE DATA (MANDATORY USE):
 - Overall score: ${normalizedScore}/100
 - Status: ${status}
-- Blocking points: ${details.hardFails.join(', ') || 'None'}
-- Points of attention: ${details.reasons.join(', ') || 'None'}
+- Blocking points: ${translateHardFails(details.hardFails, 'en').join(', ') || 'None'}
+- Points of attention: ${translateReasons(details.reasons, 'en').join(', ') || 'None'}
 
 ### CANDIDATE ANSWERS:
 ${JSON.stringify(answers, null, 2)}
@@ -168,7 +209,7 @@ Structure attendue :
 Your score is **${normalizedScore}/100**.
 We could not retrieve the detailed specific requirements for **${destinationCountry}** in our current database, but here is a general analysis:
 ${status === 'ELIGIBLE' ? '🟢 Your profile looks solid.' : '⚠️ Your profile needs some adjustments.'}
-${details.reasons.length > 0 ? '\n**Points to watch:**\n- ' + details.reasons.join('\n- ') : ''}
+${details.reasons.length > 0 ? '\n**Points to watch:**\n- ' + translateReasons(details.reasons, 'en').join('\n- ') : ''}
 💡 We recommend checking the exact amounts required on the official consulate website.`
             : `## Résumé du profil
 Votre score est de **${normalizedScore}/100**.
