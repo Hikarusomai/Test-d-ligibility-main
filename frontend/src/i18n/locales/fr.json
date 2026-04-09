@@ -15,7 +15,8 @@
     "home": "Accueil",
     "logout": "Déconnexion",
     "login": "Connexion",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "finish": "Terminer"
   },
   "nav": {
     "home": "Accueil",
@@ -24,6 +25,10 @@
     "register": "S'inscrire",
     "logout": "Déconnexion",
     "adminDashboard": "Admin Dashboard"
+  },
+  "header": {
+    "eligibilityTest": "Test d'Éligibilité",
+    "studentVISA": "VISA Étudiant"
   },
   "home": {
     "badge": "Test d'Éligibilité VISA",
@@ -99,7 +104,9 @@
     "processingTimeLabel": "Processing time",
     "languageTestLabel": "Language tests",
     "noData": "Aucune donnée disponible",
+    "noBriefing": "Aucun briefing généré.",
     "returnDashboard": "Retour au Dashboard",
+    "regenerateWithAI": "Régénérer avec l'IA",
     "generatingBriefing": "Génération de votre briefing personnalisé avec l'IA...",
     "pleaseWait": "Cela peut prendre quelques secondes",
     "savingAnswers": "Sauvegarde de vos réponses",

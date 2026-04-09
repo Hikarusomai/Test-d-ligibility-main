@@ -15,7 +15,8 @@
     "home": "Home",
     "logout": "Logout",
     "login": "Login",
-    "register": "Sign up"
+    "register": "Sign up",
+    "finish": "Finish"
   },
   "nav": {
     "home": "Home",
@@ -24,6 +25,10 @@
     "register": "Sign up",
     "logout": "Logout",
     "adminDashboard": "Admin Dashboard"
+  },
+  "header": {
+    "eligibilityTest": "Eligibility Test",
+    "studentVISA": "Student VISA"
   },
   "home": {
     "badge": "VISA Eligibility Test",
@@ -99,7 +104,9 @@
     "processingTimeLabel": "Processing time",
     "languageTestLabel": "Language tests",
     "noData": "No data available",
+    "noBriefing": "No briefing generated.",
     "returnDashboard": "Return to Dashboard",
+    "regenerateWithAI": "Regenerate with AI",
     "generatingBriefing": "Generating your personalized briefing with AI...",
     "pleaseWait": "This may take a few seconds",
     "savingAnswers": "Saving your answers",

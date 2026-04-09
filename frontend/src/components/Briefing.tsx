@@ -127,14 +127,14 @@ export default function Briefing() {
                     {/* Briefing texte markdown */}
                     <div className="prose prose-lg max-w-none mb-8">
                         <ReactMarkdown>
-                            {briefing.briefing || 'Aucun briefing généré.'}
+                            {briefing.briefing || t('result.noBriefing')}
                         </ReactMarkdown>
                     </div>
 
                     {/* Recommandations */}
                     {briefing.recommendations && briefing.recommendations.length > 0 && (
                         <div className="mt-8">
-                            <h2 className="text-2xl font-bold mb-4">🎯 Actions recommandées</h2>
+                            <h2 className="text-2xl font-bold mb-4">{t('result.recommendedActions')}</h2>
                             <div className="space-y-4">
                                 {briefing.recommendations.map((rec, index) => (
                                     <div
@@ -176,7 +176,7 @@ export default function Briefing() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Télécharger PDF
+                            {t('common.downloadPdf')}
                         </button>
                         <button
                             onClick={fetchBriefing}
@@ -185,7 +185,7 @@ export default function Briefing() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Régénérer avec l'IA
+                            {t('result.regenerateWithAI')}
                         </button>
                     </div>
                 </div>

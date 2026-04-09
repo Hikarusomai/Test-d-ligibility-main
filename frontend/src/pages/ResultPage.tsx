@@ -144,7 +144,7 @@ function ResultsPage({
                         </div>
 
                         <Button onClick={onComplete} variant="primary" size="lg" className="w-full">
-                            Terminer
+                            {t('common.finish')}
                         </Button>
                     </div>
                 )}

@@ -116,10 +116,10 @@ function Header({
                         </div>
                         <div className="text-left">
                             <h1 className="text-lg font-bold font-heading leading-tight">
-                                Test d'Éligibilité
+                                {t('header.eligibilityTest')}
                             </h1>
                             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                VISA Étudiant
+                                {t('header.studentVISA')}
                             </p>
                         </div>
                     </button>
