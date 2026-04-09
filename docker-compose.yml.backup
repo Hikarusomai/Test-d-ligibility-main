@@ -1,49 +1,41 @@
-services:
+﻿services:
   mongodb:
     image: mongo:7
     container_name: eligibility_mongo
     restart: unless-stopped
     ports:
-      - "27018:27017"  # Changed to 27018 to avoid conflicts
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - eligibility_net
-      - leadops_leadops_network  # Connect to leadops network
 
   backend:
     build: ./backend
     container_name: eligibility_backend
     restart: unless-stopped
     ports:
-      - "3002:3000"  # Changed to 3002 to avoid conflicts
+      - "3000:3000"
     env_file:
       - ./backend/.env
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
-      - PORT=3000
     volumes:
       - ./backend:/app
       - /app/node_modules
     depends_on:
       mongodb:
         condition: service_healthy
-    networks:
-      - eligibility_net
-      - leadops_leadops_network  # Connect to leadops network
 
   frontend:
     build: ./frontend
     container_name: eligibility_frontend
     restart: unless-stopped
     ports:
-      - "5174:5173"  # Changed to 5174 to avoid conflicts
+      - "5173:5173"
     env_file:
       - ./frontend/.env
     volumes:
@@ -51,37 +43,27 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-    networks:
-      - eligibility_net
-      - leadops_leadops_network  # Connect to leadops network
 
   scraper:
     build: ./serveur
     container_name: eligibility_scraper
     restart: unless-stopped
     ports:
-      - "3003:3001"  # Changed to 3003 to avoid conflicts
+      - "3001:3001"
     env_file:
       - ./serveur/.env
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
-      - PORT=3001
     volumes:
       - ./serveur:/app
       - /app/node_modules
     depends_on:
       mongodb:
         condition: service_healthy
-    networks:
-      - eligibility_net
-      - leadops_leadops_network  # Connect to leadops network
 
 volumes:
   mongodb_data:
-  mongodb_config:
 
 networks:
-  eligibility_net:
-    driver: bridge
-  leadops_leadops_network:
-    external: true  # Use existing leadops network
+  default:
+    name: eligibility_net

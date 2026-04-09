@@ -369,12 +369,16 @@ function StudentManagementPage({ isDark = false, onBack }: StudentManagementPage
                                             <td className="px-6 py-4">
                                                 <div>
                                                     <p className={`font-medium ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                                                        {student.user.firstName && student.user.lastName
-                                                            ? `${student.user.firstName} ${student.user.lastName}`
-                                                            : student.user.email}
+                                                        {student.user ? (
+                                                            student.user.firstName && student.user.lastName
+                                                                ? `${student.user.firstName} ${student.user.lastName}`
+                                                                : student.user.email || 'Unknown User'
+                                                        ) : (
+                                                            'Unknown User'
+                                                        )}
                                                     </p>
                                                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                                                        {student.user.email}
+                                                        {student.user?.email || 'No email'}
                                                     </p>
                                                 </div>
                                             </td>

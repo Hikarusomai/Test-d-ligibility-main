@@ -30,19 +30,25 @@ exports.updateQuestion = async (req, res) => {
 
 exports.deleteQuestion = async (req, res) => {
   try {
+    console.log('🗑️ deleteQuestion called by:', req.user?.email, 'for question ID:', req.params.id, 'at', new Date().toISOString());
     const q = await Question.findByIdAndDelete(req.params.id);
     if (!q) return res.status(404).json({ message: 'Question not found' });
+    console.log('🗑️ Question deleted:', q.label);
     res.json({ message: 'Question deleted' });
-  } catch {
+  } catch (error) {
+    console.error('❌ Error deleting question:', error);
     res.status(400).json({ message: 'Error deleting question' });
   }
 };
 
 exports.deleteAllQuestions = async (req, res) => {
   try {
-    await Question.deleteMany({});
+    console.log('🚨 WARNING: deleteAllQuestions called by:', req.user?.email, 'at', new Date().toISOString());
+    const result = await Question.deleteMany({});
+    console.log('🚨 Questions deleted:', result);
     res.json({ message: 'All questions deleted' });
-  } catch {
+  } catch (error) {
+    console.error('❌ Error deleting all questions:', error);
     res.status(500).json({ message: 'Error deleting all questions' });
   }
 };

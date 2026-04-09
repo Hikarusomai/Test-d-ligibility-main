@@ -59,6 +59,17 @@ app.get('/', (req, res) => {
     });
 });
 
+// Global error handling to prevent crashes
+process.on('uncaughtException', (err) => {
+    console.error('❌ Uncaught Exception:', err);
+    // Don't exit the process, just log the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌Unhandled Rejection at:', promise, 'reason:', reason);
+    // Don't exit the process, just log the error
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT} (CORS FIX VERSION 2)`);
     console.log(`📋 Public questions API: http://localhost:${PORT}/api/questions`);

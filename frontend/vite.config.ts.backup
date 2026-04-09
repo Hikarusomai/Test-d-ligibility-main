@@ -9,13 +9,5 @@ export default defineConfig({
       usePolling: true,
     },
     host: true,
-    allowedHosts: [
-      'visa.leadops.website',
-      'visa.matchmyschool.com',
-      '.matchmyschool.com',
-      '.leadops.website',
-      'localhost',
-      '.localhost'
-    ],
   },
 })

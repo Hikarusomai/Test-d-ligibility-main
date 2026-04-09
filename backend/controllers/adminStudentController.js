@@ -133,6 +133,15 @@ exports.getStudentById = async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Validate ObjectId
+        const mongoose = require('mongoose');
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID invalide'
+            });
+        }
+
         const submission = await TestSubmission.findById(id)
             .populate('userId', 'email firstName lastName phone nationality');
 

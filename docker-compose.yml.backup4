@@ -7,7 +7,6 @@ services:
       - "27018:27017"  # Changed to 27018 to avoid conflicts
     volumes:
       - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -46,6 +45,8 @@ services:
       - "5174:5173"  # Changed to 5174 to avoid conflicts
     env_file:
       - ./frontend/.env
+    environment:
+      - VITE_API_URL=http://localhost:3002
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -78,7 +79,6 @@ services:
 
 volumes:
   mongodb_data:
-  mongodb_config:
 
 networks:
   eligibility_net:

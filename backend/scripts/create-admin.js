@@ -10,17 +10,17 @@ async function createAdmin() {
         console.log('Connected to MongoDB...');
 
         // Check if admin already exists
-        const existingAdmin = await User.findOne({ email: 'admin@visa.leadops.website' });
+        const existingAdmin = await User.findOne({ email: 'contact@matchmyschool.com' });
         if (existingAdmin) {
             console.log('✅ Admin user already exists!');
-            console.log('Email: admin@visa.leadops.website');
+            console.log('Email: contact@matchmyschool.com');
             console.log('Role:', existingAdmin.role);
             process.exit(0);
         }
 
         // Create admin user
         const admin = new User({
-            email: 'admin@visa.leadops.website',
+            email: 'contact@matchmyschool.com',
             password: 'Admin@2026',
             firstName: 'Admin',
             lastName: 'User',
@@ -31,7 +31,7 @@ async function createAdmin() {
         console.log('✅ Admin user created successfully!');
         console.log('');
         console.log('=========================================');
-        console.log('📧 Admin Email: admin@visa.leadops.website');
+        console.log('📧 Admin Email: contact@matchmyschool.com');
         console.log('🔑 Admin Password: Admin@2026');
         console.log('🌐 Admin Dashboard: https://visa.leadops.website');
         console.log('=========================================');
