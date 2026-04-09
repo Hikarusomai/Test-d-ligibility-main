@@ -43,7 +43,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
             setTests(tests.filter(t => t.id !== testId));
             alert(t('dashboard.testDeletedSuccess'));
         } catch (err: any) {
-            alert(`Erreur: ${err.message}`);
+            alert(`${t('common.error')}: ${err.message}`);
         }
     };
 

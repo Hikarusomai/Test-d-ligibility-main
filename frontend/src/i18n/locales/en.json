@@ -48,7 +48,8 @@
     "ctaSubtitle": "Answer a few simple questions to learn about your eligibility",
     "confidential": "Confidential and secure",
     "fast": "Only 5 minutes",
-    "instantResults": "Immediate results"
+    "instantResults": "Immediate results",
+    "mascotAlt": "Student mascot"
   },
   "quiz": {
     "selectOrigin": "Select your country of origin",
@@ -111,7 +112,8 @@
     "pleaseWait": "This may take a few seconds",
     "savingAnswers": "Saving your answers",
     "testSubmitted": "Test submitted successfully!",
-    "answersSaved": "Your answers have been recorded"
+    "answersSaved": "Your answers have been recorded",
+    "errorLoadingBriefing": "Error loading briefing"
   },
   "dashboard": {
     "title": "My Dashboard",

@@ -48,7 +48,8 @@
     "ctaSubtitle": "Répondez à quelques questions simples pour connaître votre éligibilité",
     "confidential": "Confidentiel et sécurisé",
     "fast": "5 minutes seulement",
-    "instantResults": "Résultats immédiats"
+    "instantResults": "Résultats immédiats",
+    "mascotAlt": "Mascotte étudiante"
   },
   "quiz": {
     "selectOrigin": "Sélectionnez votre pays d'origine",
@@ -111,7 +112,8 @@
     "pleaseWait": "Cela peut prendre quelques secondes",
     "savingAnswers": "Sauvegarde de vos réponses",
     "testSubmitted": "Test soumis avec succès !",
-    "answersSaved": "Vos réponses ont été enregistrées"
+    "answersSaved": "Vos réponses ont été enregistrées",
+    "errorLoadingBriefing": "Erreur de chargement du briefing"
   },
   "dashboard": {
     "title": "Mon Dashboard",

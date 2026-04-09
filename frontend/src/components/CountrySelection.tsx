@@ -279,8 +279,8 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                                 style={{ backgroundColor: getRegionColor(country.region) }}
                                             />
                                             <span className="font-medium group-hover:text-brand-primary transition-colors">
-                        {country.name}
-                      </span>
+                                                {i18n.language === 'en' ? country.nameEn : country.name}
+                                            </span>
                                         </div>
                                         <span className={`text-xs px-3 py-1 rounded-full font-mono ${
                                             isDark ? 'bg-neutral-700 text-neutral-300' : 'bg-neutral-100 text-neutral-600'

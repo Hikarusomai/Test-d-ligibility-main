@@ -85,8 +85,8 @@ function QuestionPage({
         }, 700);
     };
 
-    const questionTitle = (isEn && question?.labelEn) ? question.labelEn : (question?.label || question?.text || '');
-    const questionDescription = (isEn && question?.descriptionEn) ? question.descriptionEn : (question?.description || '');
+    const questionTitle = i18n.language === 'en' && question?.labelEn ? question.labelEn : (question?.label || question?.text || '');
+    const questionDescription = i18n.language === 'en' && question?.descriptionEn ? question.descriptionEn : (question?.description || '');
     const currentQuestionOrder = question?.order ?? questionOrder ?? 1;
     const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
     const translateClass = exitDirection === 'left' ? '-translate-x-full' : 'translate-x-full';

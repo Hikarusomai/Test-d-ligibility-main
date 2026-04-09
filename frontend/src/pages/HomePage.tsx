@@ -42,7 +42,7 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
           <div className="order-2 md:order-1 flex justify-center md:justify-start">
             <img 
               src="/assets/mascot.png" 
-              alt="Mascotte étudiante" 
+              alt={t('home.mascotAlt')} 
               className="w-full max-w-[300px] md:max-w-[400px] h-auto animate-fade-in"
             />
           </div>

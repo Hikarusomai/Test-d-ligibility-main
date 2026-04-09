@@ -42,7 +42,7 @@ export default function Briefing() {
             setError(
                 error.response?.data?.message ||
                 error.message ||
-                'Erreur de chargement du briefing'
+                t('result.errorLoadingBriefing')
             );
         } finally {
             setLoading(false);
