@@ -90,6 +90,7 @@ export interface TestSubmission {
     originCountry: string;
     destinationCountry: string;
     answers: Record<string, any>;
+    lang?: string;
 }
 
 export interface TestResponse {

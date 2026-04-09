@@ -193,7 +193,7 @@ function QuestionPage({
                                 <TextQuestion
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
-                                    placeholder={question.placeholder ?? "Votre réponse..."}
+                                    placeholder={question.placeholder ?? t('question.textPlaceholder')}
                                     multiline={question.multiline ?? false}
                                     maxLength={question.maxLength}
                                     minLength={question.minLength ?? 1}

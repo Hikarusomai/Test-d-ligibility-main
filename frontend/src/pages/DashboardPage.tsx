@@ -14,7 +14,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const user = apiService.getStoredUser();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         fetchTests();
@@ -49,7 +49,8 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', {
+        const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR';
+        return date.toLocaleDateString(locale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',

@@ -238,6 +238,7 @@
     "validateCount": "Valider ({{count}})",
     "enterNumber": "Veuillez saisir un nombre",
     "enterNumberFallback": "Entrez un nombre...",
+    "textPlaceholder": "Votre réponse...",
     "numberMustBeValid": "Veuillez entrer un nombre valide",
     "valueMustBeGreaterOrEqual": "La valeur doit être supérieure ou égale à {{min}}",
     "valueMustBeLessOrEqual": "La valeur doit être inférieure ou égale à {{max}}",

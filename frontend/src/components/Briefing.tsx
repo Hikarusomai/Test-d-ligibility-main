@@ -17,7 +17,7 @@ interface BriefingData {
 }
 
 export default function Briefing() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { submissionId } = useParams();
     const [briefing, setBriefing] = useState<BriefingData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function Briefing() {
             setLoading(true);
             // Utilise bien le bon endpoint backend :
             const response = await axios.get(
-                `https://hackspice-backend.onrender.com/api/tests/briefing/${submissionId}`
+                `https://hackspice-backend.onrender.com/api/tests/briefing/${submissionId}?lang=${i18n.language}`
             );
             console.log('API Briefing Response:', response.data);
             setBriefing(response.data);

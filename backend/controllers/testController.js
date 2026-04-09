@@ -60,12 +60,50 @@ const submitTest = async (req, res) => {
         function escapeRegex(str) { return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
         function slugify(str) { return String(str || '').toLowerCase().trim().replace(/\s+/g, '-'); }
 
+        const lang = req.body.lang || 'fr';
+        const isEn = lang === 'en';
+
         // Génération du briefing IA synthétique
-        let briefing = 'Briefing en cours de génération...';
+        let briefing = isEn ? 'Briefing being generated...' : 'Briefing en cours de génération...';
         if (countryRequirement) {
             try {
 
-                const prompt = `
+                const prompt = isEn ? `
+You are a student visa expert for ${destinationCountry}. Your role is to analyze the provided data and give precise, personalized advice.
+
+### CANDIDATE DATA (MANDATORY USE):
+- Overall score: ${normalizedScore}/100
+- Status: ${status}
+- Blocking points: ${details.hardFails.join(', ') || 'None'}
+- Points of attention: ${details.reasons.join(', ') || 'None'}
+
+### CANDIDATE ANSWERS:
+${JSON.stringify(answers, null, 2)}
+
+### OFFICIAL REQUIREMENTS (${destinationCountry}):
+${JSON.stringify(countryRequirement.requirements, null, 2)}
+
+### CRITICAL WRITING GUIDELINES:
+1. **BUDGET COMPARISON**: The candidate declared ${answers.Q18_first_year_amount_eur}€. The minimum required is ${countryRequirement.requirements.financial.min_annual_eur}€.
+   - IF THE BUDGET IS BELOW THE MINIMUM: You MUST state this is a critical issue and the visa will be REFUSED.
+   - NEVER say the budget is sufficient if it is below the minimum.
+2. **STRICTLY FORBIDDEN** to say you lack information.
+3. Do not recap the context. Start directly with the title "## Profile Summary".
+4. Be direct, expert and use "you" (second person).
+
+Expected structure:
+## Profile Summary
+(Synthetic analysis of score and status)
+
+## Strengths
+(List positive points with 🟢 emojis)
+
+## Areas for Improvement
+(List weaknesses with ⚠️ emojis. If budget is insufficient, start with that!)
+
+## Key Recommendations
+(Practical advice with 💡 emojis)
+` : `
 Tu es un expert en visas étudiants pour ${destinationCountry}. Ton rôle est d'analyser les données fournies pour donner un conseil précis et personnalisé.
 
 ### DONNÉES DU CANDIDAT (À UTILISER IMPÉRATIVEMENT) :
@@ -81,7 +119,7 @@ ${JSON.stringify(answers, null, 2)}
 ${JSON.stringify(countryRequirement.requirements, null, 2)}
 
 ### DIRECTIVES DE RÉDACTION CRITIQUES :
-1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€. 
+1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€.
    - SI LE BUDGET EST INFÉRIEUR AU MINIMUM : Tu DOIS dire que c'est un point critique et que le visa sera REFUSÉ.
    - NE DIS JAMAIS que le budget est suffisant s'il est inférieur au minimum.
 2. **INTERDICTION FORMELLE** de dire que tu manques d'informations.
@@ -107,7 +145,9 @@ Structure attendue :
                     messages: [
                         {
                             role: 'system',
-                            content: 'Tu es un expert administratif spécialisé dans les visas étudiants. Tu analyses des dossiers techniques et fournis des briefings structurés sans jamais mentionner tes limitations techniques ou un manque de données.'
+                            content: isEn
+                                ? 'You are an administrative expert specializing in student visas. You analyze technical files and provide structured briefings without ever mentioning your technical limitations or lack of data.'
+                                : 'Tu es un expert administratif spécialisé dans les visas étudiants. Tu analyses des dossiers techniques et fournis des briefings structurés sans jamais mentionner tes limitations techniques ou un manque de données.'
                         },
                         { role: 'user', content: prompt }
                     ]
@@ -118,12 +158,20 @@ Structure attendue :
                 }
             } catch (aiError) {
                 console.error('❌ Erreur génération IA :', aiError.message);
-                briefing = "## Analyse indisponible\nLe briefing personnalisé n'a pas pu être généré pour le moment. Veuillez réessayer plus tard.";
+                briefing = isEn
+                    ? "## Analysis Unavailable\nThe personalized briefing could not be generated at this time. Please try again later."
+                    : "## Analyse indisponible\nLe briefing personnalisé n'a pas pu être généré pour le moment. Veuillez réessayer plus tard.";
             }
         } else {
             console.warn('Exigences pays non trouvées (nom) :', destName);
-            briefing = `## Résumé du profil
-Votre score est de **${normalizedScore}/100**. 
+            briefing = isEn ? `## Profile Summary
+Your score is **${normalizedScore}/100**.
+We could not retrieve the detailed specific requirements for **${destinationCountry}** in our current database, but here is a general analysis:
+${status === 'ELIGIBLE' ? '🟢 Your profile looks solid.' : '⚠️ Your profile needs some adjustments.'}
+${details.reasons.length > 0 ? '\n**Points to watch:**\n- ' + details.reasons.join('\n- ') : ''}
+💡 We recommend checking the exact amounts required on the official consulate website.`
+            : `## Résumé du profil
+Votre score est de **${normalizedScore}/100**.
 Nous n'avons pas pu récupérer les exigences spécifiques détaillées pour **${destinationCountry}** dans notre base de données actuelle, mais voici une analyse générale :
 ${status === 'ELIGIBLE' ? '🟢 Votre profil semble solide.' : '⚠️ Votre profil nécessite des ajustements.'}
 ${details.reasons.length > 0 ? '\n**Points à surveiller :**\n- ' + details.reasons.join('\n- ') : ''}
@@ -249,12 +297,27 @@ const generateBriefing = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Exigences pays non trouvées' });
         }
 
-        function escapeRegex(str) { return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-        function slugify(str) { return String(str || '').toLowerCase().trim().replace(/\s+/g, '-'); }
+        function escapeRegex(str) { return String(str || ‘’).replace(/[.*+?^${}()|[\]\\]/g, ‘\\$&’); }
+        function slugify(str) { return String(str || ‘’).toLowerCase().trim().replace(/\s+/g, ‘-’); }
 
-        const client = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
+        const lang = req.query.lang || ‘fr’;
+        const isEnRegen = lang === ‘en’;
+        const clientRegen = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
 
-        const prompt = `
+        const prompt = isEnRegen ? `
+You are an administrative expert in student visas.
+Here are the candidate’s answers:
+${JSON.stringify(submission.answers, null, 2)}
+
+Here are the official requirements for the destination country (${submission.destinationCountry}):
+${JSON.stringify(countryRequirement.requirements, null, 2)}
+
+Compare each answer to each criterion and write a personalized briefing in English with:
+# Strengths
+# Weaknesses or areas for improvement
+# Precise practical recommendations
+Be concise, structured and professional.
+` : `
 Tu es un expert administratif en visa étudiant.
 Voici les réponses du candidat :
 ${JSON.stringify(submission.answers, null, 2)}
@@ -269,11 +332,16 @@ Compare chaque réponse à chaque critère et rédige un briefing personnalisé,
 Sois synthétique, structuré et professionnel.
 `;
 
-        const completion = await client.chat.completions.create({
-            model: 'sonar-32k-online',
+        const completion = await clientRegen.chat.completions.create({
+            model: ‘sonar-32k-online’,
             messages: [
-                { role: 'system', content: 'Tu es un assistant d’orientation pour étudiants internationaux.' },
-                { role: 'user', content: prompt }
+                {
+                    role: ‘system’,
+                    content: isEnRegen
+                        ? ‘You are an orientation assistant for international students.’
+                        : ‘Tu es un assistant d\’orientation pour étudiants internationaux.’
+                },
+                { role: ‘user’, content: prompt }
             ]
         });
 

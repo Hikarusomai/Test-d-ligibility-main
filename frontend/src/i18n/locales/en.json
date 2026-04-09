@@ -238,6 +238,7 @@
     "validateCount": "Validate ({{count}})",
     "enterNumber": "Please enter a number",
     "enterNumberFallback": "Enter a number...",
+    "textPlaceholder": "Your answer...",
     "numberMustBeValid": "Please enter a valid number",
     "valueMustBeGreaterOrEqual": "Value must be greater than or equal to {{min}}",
     "valueMustBeLessOrEqual": "Value must be less than or equal to {{max}}",

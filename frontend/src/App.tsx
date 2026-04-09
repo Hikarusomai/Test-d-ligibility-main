@@ -31,7 +31,7 @@ function App() {
     const [user, setUser] = useState<{ id: string } | null>(null);
     const [allQuestions, setAllQuestions] = useState<any[]>([]);
     const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const fetchTotalQuestions = async () => {
         try {
@@ -212,6 +212,7 @@ function App() {
                 originCountry: getEnglishCountryName(originCountry, ORIGIN_COUNTRIES),
                 destinationCountry: getEnglishCountryName(destinationCountry, DESTINATION_COUNTRIES),
                 answers: answersFormatted,
+                lang: i18n.language,
             });
 
             setSubmitResult(result);
@@ -349,7 +350,7 @@ function App() {
                                     📅 {t('result.date')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
-                                    {new Date(data.completedAt).toLocaleDateString('fr-FR')}
+                                    {new Date(data.completedAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
                                 </p>
                             </div>
                         </div>

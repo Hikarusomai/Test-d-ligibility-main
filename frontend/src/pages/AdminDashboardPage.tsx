@@ -31,6 +31,28 @@ function AdminDashboardPage({ isDark = false, onBack }: AdminDashboardPageProps)
         }
     };
 
+    const handleExportData = () => {
+        const headers = ['order', 'key', 'label', 'labelEn', 'type', 'category', 'weight', 'isActive'];
+        const rows = questions.map(q => [
+            q.order,
+            q.key,
+            (q.label || '').replace(/,/g, ';'),
+            ((q as any).labelEn || '').replace(/,/g, ';'),
+            q.type,
+            q.category,
+            q.weight,
+            q.isActive
+        ]);
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'questions_export.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const handleDeleteQuestion = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) return;
 
@@ -59,6 +81,12 @@ function AdminDashboardPage({ isDark = false, onBack }: AdminDashboardPageProps)
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <Button onClick={handleExportData} variant="outline" disabled={questions.length === 0}>
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export données
+                        </Button>
                         <Button onClick={() => setIsAddingNew(true)} variant="primary">
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

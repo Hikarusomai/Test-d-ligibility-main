@@ -87,8 +87,8 @@ function DestinationSelection({
         : null;
 
     const currentQuestionOrder = question?.order || 2;
-    const questionTitle = question?.label || question?.text || '';
-    const questionDescription = question?.description || '';
+    const questionTitle = i18n.language === 'en' && question?.labelEn ? question.labelEn : (question?.label || question?.text || '');
+    const questionDescription = i18n.language === 'en' && question?.descriptionEn ? question.descriptionEn : (question?.description || '');
     const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
 
     return (

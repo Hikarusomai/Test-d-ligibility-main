@@ -173,7 +173,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 type="text"
                                 value={formData.firstName}
                                 onChange={handleChange}
-                                placeholder="Jean"
+                                placeholder={t('auth.firstNamePlaceholder')}
                                 className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                     isDark
                                         ? 'bg-neutral-700 border-neutral-600 text-white placeholder-neutral-500 focus:border-brand-primary'
@@ -197,7 +197,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 type="text"
                                 value={formData.lastName}
                                 onChange={handleChange}
-                                placeholder="Dupont"
+                                placeholder={t('auth.lastNamePlaceholder')}
                                 className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                     isDark
                                         ? 'bg-neutral-700 border-neutral-600 text-white placeholder-neutral-500 focus:border-brand-primary'
@@ -223,7 +223,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                             type="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="votre@email.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             required
                             className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                 isDark
@@ -250,7 +250,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 type="tel"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder="+33 6 12 34 56 78"
+                                placeholder={t('auth.phonePlaceholder')}
                                 className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                     isDark
                                         ? 'bg-neutral-700 border-neutral-600 text-white placeholder-neutral-500 focus:border-brand-primary'
@@ -274,7 +274,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                                 type="text"
                                 value={formData.nationality}
                                 onChange={handleChange}
-                                placeholder="Française"
+                                placeholder={t('auth.nationalityPlaceholder')}
                                 className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                     isDark
                                         ? 'bg-neutral-700 border-neutral-600 text-white placeholder-neutral-500 focus:border-brand-primary'

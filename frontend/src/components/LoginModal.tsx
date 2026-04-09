@@ -123,7 +123,7 @@ function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToRegister, isDar
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="votre@email.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             required
                             className={`w-full px-4 py-3 rounded-lg border-2 transition-colors ${
                                 isDark
