@@ -101,7 +101,10 @@
     "noData": "No data available",
     "returnDashboard": "Return to Dashboard",
     "generatingBriefing": "Generating your personalized briefing with AI...",
-    "pleaseWait": "This may take a few seconds"
+    "pleaseWait": "This may take a few seconds",
+    "savingAnswers": "Saving your answers",
+    "testSubmitted": "Test submitted successfully!",
+    "answersSaved": "Your answers have been recorded"
   },
   "dashboard": {
     "title": "My Dashboard",
