@@ -178,6 +178,10 @@ ${details.reasons.length > 0 ? '\n**Points à surveiller :**\n- ' + details.reas
 💡 Nous vous conseillons de vérifier les montants exacts requis sur le site officiel du consulat.`;
         }
 
+        // Persist briefing to database so history can retrieve it
+        submission.briefing = briefing;
+        await submission.save();
+
         return res.status(201).json({
             success: true,
             message: 'Test soumis avec succès',
@@ -218,6 +222,7 @@ const getMyTests = async (req, res) => {
                 destinationCountry: test.destinationCountry,
                 score: test.score,
                 status: test.status,
+                briefing: test.briefing || '',
                 completedAt: test.completedAt,
                 createdAt: test.createdAt
             }))

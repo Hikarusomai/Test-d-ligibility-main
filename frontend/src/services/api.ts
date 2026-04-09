@@ -112,6 +112,7 @@ export interface SavedTest {
     answers: Record<string, any>;
     score: number;
     status: string;
+    briefing?: string;
     completedAt: string;
     createdAt: string;
 }

@@ -30,6 +30,7 @@ const testSubmissionSchema = new mongoose.Schema(
       enum: ['ELIGIBLE', 'MITIGE', 'FAIBLE', 'A_RISQUE', 'INCOMPLETE'],
       default: 'INCOMPLETE'
     },
+    briefing: { type: String, default: '' },
     completedAt: { type: Date, required: true }
   },
   { timestamps: true }
