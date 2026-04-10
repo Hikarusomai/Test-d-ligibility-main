@@ -508,6 +508,25 @@ class ApiService {
             return null;
         }
     }
+
+    async getAllSubmissions(): Promise<{ success: boolean; count: number; submissions: any[] }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/tests/all`;
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Erreur lors de la récupération des soumissions');
+
+            return await response.json();
+        } catch (error: any) {
+            console.error('❌ Get all submissions error:', error);
+            throw error;
+        }
+    }
 }
 
 export const apiService = new ApiService();

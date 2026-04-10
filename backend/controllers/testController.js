@@ -321,6 +321,41 @@ const deleteTest = async (req, res) => {
     }
 };
 
+// Admin: Get ALL submissions
+const getAllSubmissions = async (req, res) => {
+    try {
+        const submissions = await TestSubmission.find({})
+            .sort({ createdAt: -1 })
+            .populate('userId', 'firstName lastName email phone nationality');
+
+        const result = submissions.map(s => ({
+            id: s._id,
+            user: s.userId ? {
+                id: s.userId._id,
+                firstName: s.userId.firstName || '',
+                lastName: s.userId.lastName || '',
+                email: s.userId.email || '',
+                phone: s.userId.phone || '',
+                nationality: s.userId.nationality || ''
+            } : null,
+            originCountry: s.originCountry,
+            destinationCountry: s.destinationCountry,
+            score: s.score,
+            status: s.status,
+            analysis: s.analysis || {},
+            answers: s.answers || {},
+            briefing: s.briefing || '',
+            completedAt: s.completedAt,
+            createdAt: s.createdAt
+        }));
+
+        res.json({ success: true, count: result.length, submissions: result });
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+};
+
 const generateBriefing = async (req, res) => {
     try {
         const { submissionId } = req.params;
@@ -412,5 +447,6 @@ module.exports = {
     getMyTests,
     getTestById,
     deleteTest,
-    generateBriefing
+    generateBriefing,
+    getAllSubmissions
 };

@@ -55,6 +55,7 @@ async function evaluateEligibility(rawAnswers) {
     countryDoc = await CountryRequirement.findOne({
       $or: [
         { 'country.name': new RegExp(`^${escapeRegex(dest)}$`, 'i') },
+        { 'country.nameEn': new RegExp(`^${escapeRegex(dest)}$`, 'i') },
         { 'country.slug': new RegExp(`^${escapeRegex(slugify(dest))}$`, 'i') },
         { 'country.iso3': new RegExp(`^${escapeRegex(dest)}$`, 'i') }
       ]
@@ -74,9 +75,10 @@ async function evaluateEligibility(rawAnswers) {
 
   // Q3 & Q3bis: Gating for Minors
   const isMinor = String(answersByKey.Q3_is_minor || '').toLowerCase();
-  if (isMinor === "oui") {
+  // French: "Oui", "Non" / English: "Yes", "No"
+  if (isMinor === "oui" || isMinor === "yes") {
     const parentalConsent = String(answersByKey.Q3bis_parental_consent || '').toLowerCase();
-    if (parentalConsent === "non") {
+    if (parentalConsent === "non" || parentalConsent === "no") {
       hardFails.push("Absence d'autorisation parentale ou d'hébergement pour mineur");
     }
   }
@@ -85,10 +87,12 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q4_visa_history !== undefined) {
     const v = String(answersByKey.Q4_visa_history || '').toLowerCase();
     const max = 10;
-    if (v === "jamais") add(8, max);
-    else if (v === "déjà obtenu") add(10, max);
-    else if (v === "déjà refusé - motif corrigé") add(6, max, "Ancien refus corrigé.");
-    else if (v === "déjà refusé - non corrigé") {
+    // French: "jamais", "déjà obtenu", "déjà refusé - motif corrigé", "déjà refusé - non corrigé"
+    // English: "never", "already obtained", "already refused - reason corrected", "already refused - reason not corrected"
+    if (v === "jamais" || v === "never") add(8, max);
+    else if (v === "déjà obtenu" || v === "already obtained") add(10, max);
+    else if (v === "déjà refusé - motif corrigé" || v === "already refused - reason corrected") add(6, max, "Ancien refus corrigé.");
+    else if (v === "déjà refusé - non corrigé" || v === "already refused - reason not corrected") {
       add(0, max, "Refus non corrigé.");
       hardFails.push("Refus de visa non corrigé");
     } else add(0, max);
@@ -98,9 +102,11 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q5_migration_issues !== undefined) {
     const v = String(answersByKey.Q5_migration_issues || '').toLowerCase();
     const max = 10;
-    if (v === "non") add(10, max);
-    else if (v.includes("léger")) add(5, max, "Antécédent migratoire mineur.");
-    else if (v.includes("grave")) {
+    // French: "non", "Oui - léger", "Oui - grave"
+    // English: "no", "Yes - minor", "Yes - serious"
+    if (v === "non" || v === "no") add(10, max);
+    else if (v.includes("léger") || v.includes("minor")) add(5, max, "Antécédent migratoire mineur.");
+    else if (v.includes("grave") || v.includes("serious")) {
       add(0, max, "Antécédents migratoires graves.");
       hardFails.push("Antécédents migratoires graves");
     } else add(0, max);
@@ -110,9 +116,11 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q6_criminal_record !== undefined) {
     const v = String(answersByKey.Q6_criminal_record || '').toLowerCase();
     const max = 5;
-    if (v === "non") add(5, max);
-    else if (v.includes("mineur")) add(2, max, "Casier mineur.");
-    else if (v.includes("grave")) {
+    // French: "non", "Oui - mineur", "Oui - grave"
+    // English: "no", "Yes - minor", "Yes - serious"
+    if (v === "non" || v === "no") add(5, max);
+    else if (v.includes("mineur") || v.includes("minor")) add(2, max, "Casier mineur.");
+    else if (v.includes("grave") || v.includes("serious")) {
       add(0, max, "Casier grave.");
       hardFails.push("Casier judiciaire grave");
     } else add(0, max);
@@ -122,9 +130,11 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q8_admission_status !== undefined) {
     const v = String(answersByKey.Q8_admission_status || '').toLowerCase();
     const max = 12;
-    if (v === "admission définitive") add(12, max);
-    else if (v === "pré-admission avec conditions réalistes") add(8, max, "Pré-admission uniquement.");
-    else if (v === "non") add(0, max, "Pas encore admis.");
+    // French: "admission définitive", "pré-admission avec conditions réalistes", "non"
+    // English: "definitive admission", "conditional admission with realistic conditions", "no"
+    if (v === "admission définitive" || v === "definitive admission") add(12, max);
+    else if (v === "pré-admission avec conditions réalistes" || v === "conditional admission with realistic conditions") add(8, max, "Pré-admission uniquement.");
+    else if (v === "non" || v === "no") add(0, max, "Pas encore admis.");
     else add(0, max);
   }
 
@@ -132,9 +142,11 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q9_language_level_status !== undefined) {
     const v = String(answersByKey.Q9_language_level_status || '').toLowerCase();
     const max = 8;
-    if (v.includes("oui")) add(8, max);
-    else if (v.includes("inférieur")) add(4, max, "Test limite ou expiré.");
-    else if (v === "non") add(0, max, "Pas de preuve de langue.");
+    // French: "Oui - au niveau exigé ou +", "Oui - légèrement inférieur"
+    // English: "Yes - at required level or higher", "Yes - slightly below required"
+    if (v.includes("oui") || v.includes("yes")) add(8, max);
+    else if (v.includes("inférieur") || v.includes("below") || v.includes("lower")) add(4, max, "Test limite ou expiré.");
+    else if (v === "non" || v === "no") add(0, max, "Pas de preuve de langue.");
     else add(0, max);
   }
 
@@ -154,7 +166,10 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q12_gaps_justified !== undefined) {
     const v = String(answersByKey.Q12_gaps_justified || '').toLowerCase();
     const max = 3;
-    if (v === "oui" || v.includes("n/a")) add(3, max);
+    // French: "oui", "n/a - aucun gap", "non"
+    // English: "yes", "n/a - no gap", "no"
+    if (v === "oui" || v === "yes") add(3, max);
+    else if (v.includes("n/a") || v.includes("no gap")) add(3, max);
     else add(0, max, "Gaps non justifiés.");
   }
 
@@ -162,9 +177,11 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q13_project_coherence !== undefined) {
     const v = String(answersByKey.Q13_project_coherence || '').toLowerCase();
     const max = 4;
-    if (v === "oui") add(4, max);
-    else if (v === "partiel") add(2, max, "Projet partiellement cohérent.");
-    else if (v === "non") add(0, max, "Projet peu cohérent.");
+    // French: "oui", "partiel", "non"
+    // English: "yes", "partial", "no"
+    if (v === "oui" || v === "yes") add(4, max);
+    else if (v === "partiel" || v === "partial") add(2, max, "Projet partiellement cohérent.");
+    else if (v === "non" || v === "no") add(0, max, "Projet peu cohérent.");
     else add(0, max);
   }
 
@@ -184,7 +201,9 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q16_monthly_means_ratio !== undefined) {
     const v = String(answersByKey.Q16_monthly_means_ratio || '').toLowerCase();
     const max = 15;
-    add(v === "oui" ? 15 : 0, max, "Moyens mensuels insuffisants.");
+    // Accept both French ("oui"/"non") and English ("yes"/"no") values
+    const isYes = v === "oui" || v === "yes" || v === "true";
+    add(isYes ? 15 : 0, max, "Moyens mensuels insuffisants.");
   }
 
   // Q17: Funding Sources (Multi-choice)
@@ -192,9 +211,11 @@ async function evaluateEligibility(rawAnswers) {
     const src = answersByKey.Q17_funding_sources.map(s => String(s || '').toLowerCase());
     const max = 5;
     let s = 0;
-    if (src.some(val => val.includes("épargne") || val.includes("parent") || val.includes("bourse"))) {
+    // French: "Épargne personnelle", "Aide parentale", "Bourse", "Prêt étudiant", "Sponsor légal documenté"
+    // English: "Personal savings", "Parental support", "Scholarship", "Student loan", "Documented legal sponsor"
+    if (src.some(val => val.includes("épargne") || val.includes("savings") || val.includes("parent") || val.includes("bourse") || val.includes("scholarship"))) {
       s = 5;
-    } else if (src.some(val => val.includes("prêt") || val.includes("parrain"))) {
+    } else if (src.some(val => val.includes("prêt") || val.includes("loan") || val.includes("parrain") || val.includes("sponsor"))) {
       s = 3;
     } else {
       s = 1;
@@ -224,7 +245,8 @@ async function evaluateEligibility(rawAnswers) {
   if (answersByKey.Q19_scholarship_proof !== undefined) {
     const v = String(answersByKey.Q19_scholarship_proof || '').toLowerCase();
     const max = 2;
-    if (v === "oui") add(2, max);
+    // French: "oui", "non" / English: "yes", "no"
+    if (v === "oui" || v === "yes") add(2, max);
     else add(0, max);
   }
 

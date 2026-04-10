@@ -7,13 +7,14 @@ import DestinationCountryPage from './pages/DestinationCountryPage';
 import QuestionPage from './pages/QuestionPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminSubmissionsPage from './pages/AdminSubmissionsPage';
 import { apiService } from './services/api';
 import ChatbotWidget from './components/ChatbotWidget';
 import { marked } from 'marked';
 import { ORIGIN_COUNTRIES } from './data/origin-countries';
 import { DESTINATION_COUNTRIES } from './data/destination-countries';
 
-type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'briefing';
+type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'admin-submissions' | 'briefing';
 
 function App() {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -154,8 +155,16 @@ function App() {
                 if (q.conditionalDisplay) {
                     const dependsOnQuestion = questions.find(dq => dq.key === q.conditionalDisplay?.dependsOn);
                     if (dependsOnQuestion) {
-                        const previousAnswer = updatedAnswers[dependsOnQuestion.order];
-                        if (String(previousAnswer).toLowerCase() !== String(q.conditionalDisplay.showWhen).toLowerCase()) {
+                        const previousAnswer = String(updatedAnswers[dependsOnQuestion.order] || '').toLowerCase();
+                        const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
+                        // Normalize French to English for Oui/Non
+                        const showWhenNormalized = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                        // For partial matches (e.g., "Yes - at required" matches "oui - au niveau"), use includes
+                        const matches = previousAnswer === showWhenNormalized
+                            || previousAnswer === showWhen
+                            || previousAnswer.includes(showWhenNormalized)
+                            || showWhenNormalized.includes(previousAnswer);
+                        if (!matches) {
                             nextOrder++;
                             continue;
                         }
@@ -244,8 +253,14 @@ function App() {
                         if (q.conditionalDisplay) {
                             const dependsOnQuestion = questions.find(dq => dq.key === q.conditionalDisplay?.dependsOn);
                             if (dependsOnQuestion) {
-                                const previousAnswer = answers[dependsOnQuestion.order];
-                                if (String(previousAnswer).toLowerCase() !== String(q.conditionalDisplay.showWhen).toLowerCase()) {
+                                const previousAnswer = String(answers[dependsOnQuestion.order] || '').toLowerCase();
+                                const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
+                                const showWhenNormalized = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                                const matches = previousAnswer === showWhenNormalized
+                                    || previousAnswer === showWhen
+                                    || previousAnswer.includes(showWhenNormalized)
+                                    || showWhenNormalized.includes(previousAnswer);
+                                if (!matches) {
                                     prevOrder--;
                                     continue;
                                 }
@@ -538,6 +553,14 @@ function App() {
                     <AdminDashboardPage
                         isDark={isDark}
                         onBack={() => setCurrentPage('dashboard')}
+                        onViewSubmissions={() => setCurrentPage('admin-submissions')}
+                    />
+                )}
+
+                {currentPage === 'admin-submissions' && (
+                    <AdminSubmissionsPage
+                        isDark={isDark}
+                        onBack={() => setCurrentPage('admin')}
                     />
                 )}
 
