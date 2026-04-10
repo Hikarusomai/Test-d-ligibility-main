@@ -125,9 +125,10 @@ ${JSON.stringify(answers, null, 2)}
 ${JSON.stringify(countryRequirement.requirements, null, 2)}
 
 ### CRITICAL WRITING GUIDELINES:
-1. **BUDGET COMPARISON**: The candidate declared ${answers.Q18_first_year_amount_eur}€. The minimum required is ${countryRequirement.requirements.financial.min_annual_eur}€.
-   - IF THE BUDGET IS BELOW THE MINIMUM: You MUST state this is a critical issue and the visa will be REFUSED.
-   - NEVER say the budget is sufficient if it is below the minimum.
+1. **BUDGET COMPARISON**: The candidate declared ${answers.Q18_first_year_amount_eur}€. The minimum required is ${countryRequirement.requirements.financial.min_annual_eur}€ (threshold for scoring is 60% = ${Math.round(countryRequirement.requirements.financial.min_annual_eur * 0.6)}€).
+   - IF THE BUDGET IS BELOW 60% OF THE MINIMUM: State this is a critical issue (visa will likely be refused).
+   - If the budget is between 60-99% of minimum: Note it as a weakness but NOT a dealbreaker.
+   - If the budget meets or exceeds the minimum: Mention it as a positive.
 2. **STRICTLY FORBIDDEN** to say you lack information.
 3. Do not recap the context. Start directly with the title "## Profile Summary".
 4. Be direct, expert and use "you" (second person).
@@ -140,7 +141,7 @@ Expected structure:
 (List positive points with 🟢 emojis)
 
 ## Areas for Improvement
-(List weaknesses with ⚠️ emojis. If budget is insufficient, start with that!)
+(List weaknesses with ⚠️ emojis. Start with the most critical issue based on the score and reasons provided.)
 
 ## Key Recommendations
 (Practical advice with 💡 emojis)
@@ -160,9 +161,10 @@ ${JSON.stringify(answers, null, 2)}
 ${JSON.stringify(countryRequirement.requirements, null, 2)}
 
 ### DIRECTIVES DE RÉDACTION CRITIQUES :
-1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€.
-   - SI LE BUDGET EST INFÉRIEUR AU MINIMUM : Tu DOIS dire que c'est un point critique et que le visa sera REFUSÉ.
-   - NE DIS JAMAIS que le budget est suffisant s'il est inférieur au minimum.
+1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€ (seuil de scoring à 60% = ${Math.round(countryRequirement.requirements.financial.min_annual_eur * 0.6)}€).
+   - SI LE BUDGET EST INFÉRIEUR À 60% DU MINIMUM : Signale que c'est un point critique (visa probablement refusé).
+   - Si le budget est entre 60% et 99% du minimum : Note comme faiblesse mais PAS bloquant.
+   - Si le budget atteint ou dépasse le minimum : Mentionne comme point positif.
 2. **INTERDICTION FORMELLE** de dire que tu manques d'informations.
 3. Ne fais pas de rappel de contexte. Commence directement par le titre "## Résumé du profil".
 4. Sois direct, expert et utilise le "vous".
@@ -175,7 +177,7 @@ Structure attendue :
 (Lister les points positifs avec emojis 🟢)
 
 ## Points à améliorer
-(Lister les points faibles avec emojis ⚠️. Si le budget est insuffisant, commence par ça !)
+(Liste des points faibles avec emojis ⚠️. Commence par le point le plus critique selon le score et les raisons.)
 
 ## Recommandations clés
 (Conseils pratiques avec emojis 💡)
