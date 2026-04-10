@@ -157,14 +157,22 @@ function App() {
                     if (dependsOnQuestion) {
                         const previousAnswer = String(updatedAnswers[dependsOnQuestion.order] || '').toLowerCase();
                         const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
-                        // Normalize French to English for Oui/Non
-                        const showWhenNormalized = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
-                        // For partial matches (e.g., "Yes - at required" matches "oui - au niveau"), use includes
-                        const matches = previousAnswer === showWhenNormalized
+                        // Check if answer is in English and showWhen is French (or vice versa) and they represent same choice
+                        const answerHasYes = previousAnswer.includes('yes') || previousAnswer.includes('oui');
+                        const answerHasNo = previousAnswer.includes('no') || previousAnswer.includes('non');
+                        const showWhenHasYes = showWhen.includes('yes') || showWhen.includes('oui');
+                        const showWhenHasNo = showWhen.includes('no') || showWhen.includes('non');
+                        // Cross-language match: both have "yes"/"oui" and neither has "no", OR both have "no" and neither has "yes"
+                        const crossLangMatch = (answerHasYes && showWhenHasYes && !answerHasNo && !showWhenHasNo)
+                            || (answerHasNo && showWhenHasNo && !answerHasYes && !showWhenHasYes);
+                        // Normalize simple Oui/Non
+                        const showWhenNorm = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                        // Standard matching
+                        const directMatch = previousAnswer === showWhenNorm
                             || previousAnswer === showWhen
-                            || previousAnswer.includes(showWhenNormalized)
-                            || showWhenNormalized.includes(previousAnswer);
-                        if (!matches) {
+                            || previousAnswer.includes(showWhenNorm)
+                            || showWhenNorm.includes(previousAnswer);
+                        if (!directMatch && !crossLangMatch) {
                             nextOrder++;
                             continue;
                         }
@@ -255,12 +263,19 @@ function App() {
                             if (dependsOnQuestion) {
                                 const previousAnswer = String(answers[dependsOnQuestion.order] || '').toLowerCase();
                                 const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
-                                const showWhenNormalized = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
-                                const matches = previousAnswer === showWhenNormalized
+                                // Cross-language matching for yes/no values
+                                const answerHasYes = previousAnswer.includes('yes') || previousAnswer.includes('oui');
+                                const answerHasNo = previousAnswer.includes('no') || previousAnswer.includes('non');
+                                const showWhenHasYes = showWhen.includes('yes') || showWhen.includes('oui');
+                                const showWhenHasNo = showWhen.includes('no') || showWhen.includes('non');
+                                const crossLangMatch = (answerHasYes && showWhenHasYes && !answerHasNo && !showWhenHasNo)
+                                    || (answerHasNo && showWhenHasNo && !answerHasYes && !showWhenHasYes);
+                                const showWhenNorm = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                                const directMatch = previousAnswer === showWhenNorm
                                     || previousAnswer === showWhen
-                                    || previousAnswer.includes(showWhenNormalized)
-                                    || showWhenNormalized.includes(previousAnswer);
-                                if (!matches) {
+                                    || previousAnswer.includes(showWhenNorm)
+                                    || showWhenNorm.includes(previousAnswer);
+                                if (!directMatch && !crossLangMatch) {
                                     prevOrder--;
                                     continue;
                                 }

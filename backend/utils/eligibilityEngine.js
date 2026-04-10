@@ -144,10 +144,16 @@ async function evaluateEligibility(rawAnswers) {
     const max = 8;
     // French: "Oui - au niveau exigé ou +", "Oui - légèrement inférieur"
     // English: "Yes - at required level or higher", "Yes - slightly below required"
-    if (v.includes("oui") || v.includes("yes")) add(8, max);
-    else if (v.includes("inférieur") || v.includes("below") || v.includes("lower")) add(4, max, "Test limite ou expiré.");
-    else if (v === "non" || v === "no") add(0, max, "Pas de preuve de langue.");
-    else add(0, max);
+    // Check partial/below first (more specific), then full match
+    if (v.includes("inférieur") || v.includes("below") || v.includes("lower")) {
+      add(4, max, "Test limite ou expiré.");
+    } else if (v.includes("oui") || v.includes("yes")) {
+      add(8, max);
+    } else if (v === "non" || v === "no") {
+      add(0, max, "Pas de preuve de langue.");
+    } else {
+      add(0, max);
+    }
   }
 
   // Q10: Transcripts
@@ -258,14 +264,7 @@ async function evaluateEligibility(rawAnswers) {
 
   let normalizedScore = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
-  // --- DIFFICULTY COEFFICIENT MODULATION (VEM Logic) ---
-  if (countryDoc && countryDoc.requirements && countryDoc.requirements.difficulty_coefficient) {
-    const coeff = countryDoc.requirements.difficulty_coefficient;
-    // Formula: final = base × (2.0 - coefficient)
-    normalizedScore = Math.round(normalizedScore * (2.0 - coeff));
-  }
-
-  // --- PUNITION SÉVÈRE POUR LES POINTS BLOQUANTS ---
+  // --- POINTS BLOQUANTS (hard fails) ---
   if (hardFails.length > 0) {
     // Si point bloquant, le score ne peut pas dépasser 40/100
     normalizedScore = Math.min(normalizedScore, 40);
