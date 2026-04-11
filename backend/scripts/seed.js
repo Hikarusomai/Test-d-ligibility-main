@@ -8,40 +8,48 @@ const mongoURI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/visa_requir
 const questions = [
     {
         label: "Votre nationalité",
+        labelEn: "Your nationality",
         key: "Q1_nationality",
         category: "personal",
         type: "single_choice",
         options: ["Maroc", "Tunisie", "Algérie", "Égypte", "Libye", "Arabie saoudite", "Émirats arabes unis", "Koweït", "Irak", "Qatar", "Oman", "Syrie", "Iran", "Turquie", "Cameroun", "Côte d'Ivoire", "Afrique du Sud", "Nigéria", "Mali", "Niger", "Gabon", "Mauritanie", "Madagascar", "Bénin", "Kenya", "Guinée équatoriale", "Cap-Vert", "Éthiopie", "Comores", "Tanzanie", "Namibie", "Congo (République)", "RD Congo", "Ouganda", "Rwanda", "Sénégal", "Pakistan", "Inde", "Chine", "Corée du Sud", "Viêt Nam", "Malaisie", "Singapour", "Indonésie", "Hong Kong", "Japon", "France"],
+        optionsEn: ["Morocco", "Tunisia", "Algeria", "Egypt", "Libya", "Saudi Arabia", "United Arab Emirates", "Kuwait", "Iraq", "Qatar", "Oman", "Syria", "Iran", "Turkey", "Cameroon", "Côte d'Ivoire", "South Africa", "Nigeria", "Mali", "Niger", "Gabon", "Mauritania", "Madagascar", "Benin", "Kenya", "Equatorial Guinea", "Cape Verde", "Ethiopia", "Comoros", "Tanzania", "Namibia", "Congo (Republic)", "DR Congo", "Uganda", "Rwanda", "Senegal", "Pakistan", "India", "China", "South Korea", "Vietnam", "Malaysia", "Singapore", "Indonesia", "Hong Kong", "Japan", "France"],
         order: 1,
         weight: 0,
         isRequired: true
     },
     {
         label: "Dans quel pays souhaitez-vous poursuivre vos études ?",
+        labelEn: "Which country do you wish to study in?",
         key: "Q2_destination_country",
         category: "project",
         type: "single_choice",
         options: ["États-Unis", "Canada", "Australie", "Royaume-Uni", "France", "Allemagne", "Espagne", "Italie", "Finlande", "Irlande", "Danemark", "Norvège", "Suède", "Pologne", "Malte", "Belgique", "Chine", "Turquie", "Corée du Sud"],
+        optionsEn: ["United States", "Canada", "Australia", "United Kingdom", "France", "Germany", "Spain", "Italy", "Finland", "Ireland", "Denmark", "Norway", "Sweden", "Poland", "Malta", "Belgium", "China", "Turkey", "South Korea"],
         order: 2,
         weight: 0,
         isRequired: true
     },
     {
         label: "Êtes-vous mineur(e) ?",
+        labelEn: "Are you a minor?",
         key: "Q3_is_minor",
         category: "personal",
         type: "single_choice",
         options: ["Oui", "Non"],
+        optionsEn: ["Yes", "No"],
         order: 3,
         weight: 0,
         isRequired: true
     },
     {
         label: "Disposez-vous d'une autorisation parentale et d'un hébergement/garant légal ?",
+        labelEn: "Do you have parental authorization or accommodation for your studies?",
         key: "Q3bis_parental_consent",
         category: "personal",
         type: "single_choice",
         options: ["Oui", "Non"],
+        optionsEn: ["Yes", "No"],
         order: 4,
         weight: 0,
         isRequired: false,
@@ -52,10 +60,12 @@ const questions = [
     },
     {
         label: "Votre tranche d'âge",
+        labelEn: "Your age range",
         key: "Q3ter_age_range",
         category: "personal",
         type: "single_choice",
         options: ["18-25", "26-30", "31-35", "36+"],
+        optionsEn: ["18-25", "26-30", "31-35", "36+"],
         order: 5,
         weight: 0,
         isRequired: false,
@@ -66,10 +76,12 @@ const questions = [
     },
     {
         label: "Avez-vous déjà obtenu/refusé un visa ?",
+        labelEn: "Have you ever obtained or been refused a visa?",
         key: "Q4_visa_history",
         category: "personal",
         type: "single_choice",
         options: ["Jamais", "Déjà obtenu", "Déjà refusé - motif corrigé", "Déjà refusé - non corrigé"],
+        optionsEn: ["Never", "Already obtained", "Already refused - reason corrected", "Already refused - reason not corrected"],
         order: 6,
         weight: 10,
         isRequired: true,
@@ -82,10 +94,12 @@ const questions = [
     },
     {
         label: "Avez-vous des antécédents de dépassement de séjour ou d'infractions migratoires ?",
+        labelEn: "Do you have migration history issues?",
         key: "Q5_migration_issues",
         category: "personal",
         type: "single_choice",
         options: ["Non", "Oui - léger (≤30j, régularisé)", "Oui - grave (expulsion, interdiction, fraude)"],
+        optionsEn: ["No", "Yes - minor", "Yes - serious"],
         order: 7,
         weight: 10,
         isRequired: true,
@@ -97,10 +111,12 @@ const questions = [
     },
     {
         label: "Votre casier judiciaire comporte-t-il des mentions (condamnations pénales) ?",
+        labelEn: "Does your criminal record contain any convictions?",
         key: "Q6_criminal_record",
         category: "personal",
         type: "single_choice",
         options: ["Non", "Oui - mineur/ancien/non lié à moralité", "Oui - grave (violence, fraude, immigration)"],
+        optionsEn: ["No", "Yes - minor", "Yes - serious"],
         order: 8,
         weight: 5,
         isRequired: true,
@@ -112,20 +128,24 @@ const questions = [
     },
     {
         label: "Type de programme",
+        labelEn: "Program type",
         key: "Q7_program_type",
         category: "education",
         type: "single_choice",
         options: ["Prépa", "BTS", "Licence", "BBA", "PGE", "Master", "MSc", "MS", "Doctorat", "Autre"],
+        optionsEn: ["Prepa", "BTS", "Bachelor", "BBA", "PGE", "Master", "MSc", "MS", "PhD", "Other"],
         order: 9,
         weight: 0,
         isRequired: true
     },
     {
         label: "Êtes-vous admis(e) (ou pré-admis(e) avec conditions claires) dans un établissement reconnu ?",
+        labelEn: "Are you admitted (or pre-admitted) to a program?",
         key: "Q8_admission_status",
         category: "education",
         type: "single_choice",
         options: ["Admission définitive", "Pré-admission avec conditions réalistes", "Non"],
+        optionsEn: ["Definitive admission", "Conditional admission with realistic conditions", "No"],
         order: 10,
         weight: 12,
         isRequired: true,
@@ -137,10 +157,12 @@ const questions = [
     },
     {
         label: "Niveau linguistique adapté au programme (attestation valide)",
+        labelEn: "Is your language level adapted to the required level for the program?",
         key: "Q9_language_level_status",
         category: "language",
         type: "single_choice",
         options: ["Oui - au niveau exigé ou +", "Légèrement inférieur / expiré", "Non"],
+        optionsEn: ["Yes - at required level or higher", "Yes - slightly below required", "No"],
         order: 11,
         weight: 8,
         isRequired: true,
@@ -152,6 +174,7 @@ const questions = [
     },
     {
         label: "Nom du test + score/niveau (ex: DELF B2 - 72/100, IELTS 6.5, TOEFL iBT 90)",
+        labelEn: "Language test name + score/level (e.g., DELF B2, IELTS 6.5)",
         key: "Q9bis_language_test_details",
         category: "language",
         type: "text",
@@ -165,6 +188,7 @@ const questions = [
     },
     {
         label: "Relevés/diplômes antérieurs (traduits si requis) disponibles ?",
+        labelEn: "Do you have previous academic transcripts/diplomas available?",
         key: "Q10_transcripts_available",
         category: "education",
         type: "boolean",
@@ -175,6 +199,7 @@ const questions = [
     },
     {
         label: "Avez-vous une preuve de paiement (acompte ou totalité) ou un échéancier accepté par l'école ?",
+        labelEn: "Do you have proof of tuition payment?",
         key: "Q11_tuition_payment_proof",
         category: "finance",
         type: "boolean",
@@ -185,10 +210,12 @@ const questions = [
     },
     {
         label: "Gaps académiques (> 1 an) expliqués par des justificatifs ?",
+        labelEn: "Are your academic gaps (> 1 year) explained?",
         key: "Q12_gaps_justified",
         category: "education",
         type: "single_choice",
         options: ["Oui", "Non", "N/A - pas de gap"],
+        optionsEn: ["Yes", "No", "N/A - no gaps"],
         order: 15,
         weight: 3,
         isRequired: true,
@@ -196,10 +223,12 @@ const questions = [
     },
     {
         label: "Votre projet d'études est-il cohérent (diplômes antérieurs, continuité, objectifs) ?",
+        labelEn: "Is your study project coherent with your background?",
         key: "Q13_project_coherence",
         category: "project",
         type: "single_choice",
         options: ["Oui", "Partiel", "Non"],
+        optionsEn: ["Yes", "Partial", "No"],
         order: 16,
         weight: 4,
         isRequired: true,
@@ -207,6 +236,7 @@ const questions = [
     },
     {
         label: "Avez-vous déjà entamé ou terminé la procédure officielle exigée par le pays ? (Campus France, UCAS, etc.)",
+        labelEn: "Have you already started or completed the official process (Campus France, visa, etc.)?",
         key: "Q14_official_process_started",
         category: "project",
         type: "boolean",
@@ -217,6 +247,7 @@ const questions = [
     },
     {
         label: "Avez-vous l'intention principale d'étudier (et non de travailler à plein temps ou d'immigrer) ?",
+        labelEn: "Is studying your main intention (vs. working, immigrating)?",
         key: "Q15_main_intent_study",
         category: "project",
         type: "boolean",
@@ -227,10 +258,12 @@ const questions = [
     },
     {
         label: "Pouvez-vous prouver des moyens de subsistance mensuels au moins égaux au minimum requis par votre consulat pour toute la durée de vos études ?",
+        labelEn: "Can you prove sufficient monthly means?",
         key: "Q16_monthly_means_ratio",
         category: "finance",
         type: "single_choice",
         options: ["Oui", "Non"],
+        optionsEn: ["Yes", "No"],
         order: 19,
         weight: 15,
         isRequired: true,
@@ -238,10 +271,12 @@ const questions = [
     },
     {
         label: "Source(s) des fonds (sélection multiple)",
+        labelEn: "Source(s) of funds (select all)",
         key: "Q17_funding_sources",
         category: "finance",
         type: "multi_choice",
         options: ["Épargne personnelle", "Parent/tuteur avec justificatifs", "Bourse officielle", "Prêt étudiant approuvé", "Parrain légal documenté", "Autre avec preuves"],
+        optionsEn: ["Personal savings", "Parental support with documents", "Official scholarship", "Approved student loan", "Documented legal sponsor", "Other with proof"],
         order: 20,
         weight: 5,
         isRequired: true,
@@ -249,6 +284,7 @@ const questions = [
     },
     {
         label: "Montant total disponible pour la première année (frais de scolarité + vie) : (saisir €)",
+        labelEn: "Total amount available for the first year (in EUR)",
         key: "Q18_first_year_amount_eur",
         category: "finance",
         type: "number",
@@ -259,10 +295,12 @@ const questions = [
     },
     {
         label: "Bourse: attestation officielle indiquant montant mensuel et durée ?",
+        labelEn: "Scholarship: official certificate available?",
         key: "Q19_scholarship_proof",
         category: "finance",
         type: "single_choice",
         options: ["Oui", "Non", "N/A - pas de bourse"],
+        optionsEn: ["Yes", "No", "N/A - no scholarship"],
         order: 22,
         weight: 2,
         isRequired: true,
@@ -270,6 +308,7 @@ const questions = [
     },
     {
         label: "Engagement écrit du garant avec pièces d'identité et justificatifs de revenus ?",
+        labelEn: "Written commitment from sponsor with proof of income?",
         key: "Q20_sponsor_commitment",
         category: "finance",
         type: "boolean",
@@ -283,6 +322,7 @@ const questions = [
 const franceRequirement = {
     country: {
         name: "France",
+        nameEn: "France",
         iso3: "FRA",
         slug: "france"
     },
@@ -316,6 +356,7 @@ const franceRequirement = {
 const usaRequirement = {
     country: {
         name: "États-Unis",
+        nameEn: "United States",
         iso3: "USA",
         slug: "usa"
     },
@@ -349,6 +390,7 @@ const usaRequirement = {
 const canadaRequirement = {
     country: {
         name: "Canada",
+        nameEn: "Canada",
         iso3: "CAN",
         slug: "canada"
     },
@@ -380,6 +422,7 @@ const canadaRequirement = {
 const ukRequirement = {
     country: {
         name: "Royaume-Uni",
+        nameEn: "United Kingdom",
         iso3: "GBR",
         slug: "united-kingdom"
     },
@@ -404,6 +447,7 @@ const ukRequirement = {
 const australiaRequirement = {
     country: {
         name: "Australie",
+        nameEn: "Australia",
         iso3: "AUS",
         slug: "australia"
     },
