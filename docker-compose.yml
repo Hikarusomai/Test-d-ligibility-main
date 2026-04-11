@@ -4,11 +4,12 @@
     container_name: eligibility_mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
+    command: mongod --bind_ip_all --auth
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "-u", "visaAdmin", "-p", "VsF8kL2mP9xQj5nT3wZ7yB4cE6hR0dA", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +23,7 @@
     env_file:
       - ./backend/.env
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
+      - MONGODB_URI=mongodb://visaAdmin:VsF8kL2mP9xQj5nT3wZ7yB4cE6hR0dA@mongodb:27017/visa_requirements?authSource=admin
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -53,7 +54,7 @@
     env_file:
       - ./serveur/.env
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/visa_requirements
+      - MONGODB_URI=mongodb://visaAdmin:VsF8kL2mP9xQj5nT3wZ7yB4cE6hR0dA@mongodb:27017/visa_requirements?authSource=admin
     volumes:
       - ./serveur:/app
       - /app/node_modules
