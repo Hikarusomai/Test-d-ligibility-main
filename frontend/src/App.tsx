@@ -8,11 +8,13 @@ import QuestionPage from './pages/QuestionPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminSubmissionsPage from './pages/AdminSubmissionsPage';
-import { apiService } from './services/api';
+import { apiService, type User } from './services/api';
 import ChatbotWidget from './components/ChatbotWidget';
 import { marked } from 'marked';
 import { ORIGIN_COUNTRIES } from './data/origin-countries';
 import { DESTINATION_COUNTRIES } from './data/destination-countries';
+import LoginModal from './components/LoginModal';
+import RegisterModal from './components/RegisterModal';
 
 type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'admin-submissions' | 'briefing';
 
@@ -29,9 +31,12 @@ function App() {
     const [submitError, setSubmitError] = useState<string>('');
     const [gatingResult, setGatingResult] = useState<{ reason: string } | null>(null);
     const [selectedTest, setSelectedTest] = useState<any>(null);
-    const [user, setUser] = useState<{ id: string } | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [allQuestions, setAllQuestions] = useState<any[]>([]);
     const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [isAuthRequired, setIsAuthRequired] = useState(false);
     const { t, i18n } = useTranslation();
 
     const fetchTotalQuestions = async () => {
@@ -98,6 +103,31 @@ function App() {
         setCurrentPage('briefing');
     };
 
+    const handleLoginSuccess = (userData: User) => {
+        setUser(userData);
+        setIsLoginModalOpen(false);
+        if (isAuthRequired) {
+            setIsAuthRequired(false);
+            setCurrentPage('questions');
+            setCurrentQuestionOrder(3);
+        }
+    };
+
+    const handleRegisterSuccess = (userData: User) => {
+        setUser(userData);
+        setIsRegisterModalOpen(false);
+        if (isAuthRequired) {
+            setIsAuthRequired(false);
+            setCurrentPage('questions');
+            setCurrentQuestionOrder(3);
+        }
+    };
+
+    const handleLogout = () => {
+        setUser(null);
+        setCurrentPage('home');
+    };
+
     const handleOriginSelect = (country: string) => {
         setOriginCountry(country);
         setAnswers(prev => ({ ...prev, 1: country }));
@@ -107,6 +137,13 @@ function App() {
     const handleDestinationSelect = (destination: string) => {
         setDestinationCountry(destination);
         setAnswers(prev => ({ ...prev, 2: destination }));
+        
+        if (!apiService.isAuthenticated()) {
+            setIsAuthRequired(true);
+            setIsRegisterModalOpen(true);
+            return;
+        }
+
         setCurrentPage('questions');
         setCurrentQuestionOrder(3);
     };
@@ -550,6 +587,10 @@ function App() {
                     onToggleTheme={() => setIsDark(!isDark)}
                     onNavigateToDashboard={handleNavigateToDashboard}
                     onNavigateToAdmin={handleNavigateToAdmin}
+                    user={user}
+                    onLoginSuccess={handleLoginSuccess}
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onLogout={handleLogout}
                 />
 
                 {currentPage === 'home' && (
@@ -703,6 +744,36 @@ function App() {
                     </div>
                 )}
                 <ChatbotWidget isDark={isDark} />
+
+                <LoginModal
+                    isOpen={isLoginModalOpen}
+                    onClose={() => {
+                        setIsLoginModalOpen(false);
+                        setIsAuthRequired(false);
+                    }}
+                    onLoginSuccess={handleLoginSuccess}
+                    onSwitchToRegister={() => {
+                        setIsLoginModalOpen(false);
+                        setIsRegisterModalOpen(true);
+                    }}
+                    isDark={isDark}
+                    isClosable={!isAuthRequired}
+                />
+
+                <RegisterModal
+                    isOpen={isRegisterModalOpen}
+                    onClose={() => {
+                        setIsRegisterModalOpen(false);
+                        setIsAuthRequired(false);
+                    }}
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onSwitchToLogin={() => {
+                        setIsRegisterModalOpen(false);
+                        setIsLoginModalOpen(true);
+                    }}
+                    isDark={isDark}
+                    isClosable={!isAuthRequired}
+                />
             </div>
         </div>
     );

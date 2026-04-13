@@ -10,7 +10,11 @@ type HeaderProps = {
     onToggleTheme?: () => void;
     onNavigateToDashboard?: () => void;
     onNavigateToAdmin?: () => void;
-    onNavigateToHome?: () => void; // Nouveau prop optionnel
+    onNavigateToHome?: () => void;
+    user?: User | null;
+    onLoginSuccess?: (user: User) => void;
+    onRegisterSuccess?: (user: User) => void;
+    onLogout?: () => void;
 };
 
 function Header({
@@ -18,11 +22,16 @@ function Header({
                     onToggleTheme,
                     onNavigateToDashboard,
                     onNavigateToAdmin,
-                    onNavigateToHome
+                    onNavigateToHome,
+                    user: userProp,
+                    onLoginSuccess,
+                    onRegisterSuccess,
+                    onLogout
                 }: HeaderProps) {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
+    const [userState, setUserState] = useState<User | null>(null);
+    const user = userProp !== undefined ? userProp : userState;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const { i18n, t } = useTranslation();
@@ -36,11 +45,13 @@ function Header({
     };
 
     useEffect(() => {
-        const storedUser = apiService.getStoredUser();
-        if (storedUser) {
-            setUser(storedUser);
+        if (userProp === undefined) {
+            const storedUser = apiService.getStoredUser();
+            if (storedUser) {
+                setUserState(storedUser);
+            }
         }
-    }, []);
+    }, [userProp]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -59,22 +70,34 @@ function Header({
     }, [isMenuOpen]);
 
     const handleLoginSuccess = (userData: User) => {
-        setUser(userData);
+        if (onLoginSuccess) {
+            onLoginSuccess(userData);
+        } else {
+            setUserState(userData);
+            window.location.reload();
+        }
         setIsLoginModalOpen(false);
-        window.location.reload();
     };
 
     const handleRegisterSuccess = (userData: User) => {
-        setUser(userData);
+        if (onRegisterSuccess) {
+            onRegisterSuccess(userData);
+        } else {
+            setUserState(userData);
+            window.location.reload();
+        }
         setIsRegisterModalOpen(false);
-        window.location.reload();
     };
 
     const handleLogout = () => {
         apiService.logout();
-        setUser(null);
+        if (onLogout) {
+            onLogout();
+        } else {
+            setUserState(null);
+            window.location.reload();
+        }
         setIsMenuOpen(false);
-        window.location.reload();
     };
 
     const handleLogoClick = () => {

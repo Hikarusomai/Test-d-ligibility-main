@@ -1,4 +1,4 @@
-﻿services:
+services:
   mongodb:
     image: mongo:7
     container_name: eligibility_mongo
@@ -6,6 +6,9 @@
     ports:
       - "127.0.0.1:27017:27017"
     command: mongod --bind_ip_all --auth
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=visaAdmin
+      - MONGO_INITDB_ROOT_PASSWORD=VsF8kL2mP9xQj5nT3wZ7yB4cE6hR0dA
     volumes:
       - mongodb_data:/data/db
     healthcheck:
@@ -58,6 +61,16 @@
     volumes:
       - ./serveur:/app
       - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  init-test-db:
+    build: ./backend
+    container_name: eligibility_init_db
+    environment:
+      - MONGODB_URI=mongodb://visaAdmin:VsF8kL2mP9xQj5nT3wZ7yB4cE6hR0dA@mongodb:27017/visa_requirements?authSource=admin
+    command: node scripts/seed.js
     depends_on:
       mongodb:
         condition: service_healthy

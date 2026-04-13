@@ -9,9 +9,17 @@ type RegisterModalProps = {
     onRegisterSuccess?: (user: any) => void;
     onSwitchToLogin?: () => void;
     isDark?: boolean;
+    isClosable?: boolean;
 };
 
-function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, isDark = false }: RegisterModalProps) {
+function RegisterModal({ 
+    isOpen, 
+    onClose, 
+    onRegisterSuccess, 
+    onSwitchToLogin, 
+    isDark = false,
+    isClosable = true 
+}: RegisterModalProps) {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -92,7 +100,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
     };
 
     const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
+        if (isClosable && e.target === e.currentTarget) {
             onClose();
         }
     };
@@ -109,19 +117,21 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, onSwitchToLogin, is
                 } animate-in zoom-in-95 duration-200`}
             >
                 {/* Close button */}
-                <button
-                    onClick={onClose}
-                    className={`absolute top-4 right-4 p-2 rounded-lg transition-colors z-10 ${
-                        isDark
-                            ? 'hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200'
-                            : 'hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900'
-                    }`}
-                    aria-label={t('auth.close')}
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                {isClosable && (
+                    <button
+                        onClick={onClose}
+                        className={`absolute top-4 right-4 p-2 rounded-lg transition-colors z-10 ${
+                            isDark
+                                ? 'hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200'
+                                : 'hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900'
+                        }`}
+                        aria-label={t('auth.close')}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                )}
 
                 {/* Header */}
                 <div className="p-6 pb-4">
