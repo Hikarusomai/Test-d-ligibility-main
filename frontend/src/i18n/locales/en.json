@@ -157,6 +157,7 @@
     "registerError": "Error creating account",
     "requiredField": "This field is required",
     "emailRequired": "Email and password are required",
+    "invalidPhone": "Please enter a valid phone number",
     "passwordMinLength": "Password must be at least 6 characters",
     "passwordsMismatch": "Passwords do not match",
     "passwordPlaceholder": "••••••••",

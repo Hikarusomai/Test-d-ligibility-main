@@ -10,14 +10,20 @@ type AdminDashboardPageProps = {
 
 function AdminDashboardPage({ isDark = false, onBack, onViewSubmissions }: AdminDashboardPageProps) {
     const [questions, setQuestions] = useState<Question[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [userError, setUserError] = useState('');
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
+    const [showUsers, setShowUsers] = useState(false);
 
     useEffect(() => {
         fetchQuestions();
-    }, []);
+        if (showUsers) {
+            fetchUsers();
+        }
+    }, [showUsers]);
 
     const fetchQuestions = async () => {
         setIsLoading(true);
@@ -29,6 +35,17 @@ function AdminDashboardPage({ isDark = false, onBack, onViewSubmissions }: Admin
             setError(err.message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchUsers = async () => {
+        setUserError('');
+        try {
+            const data = await apiService.getAllUsers();
+            setUsers(data.users);
+        } catch (err: any) {
+            console.error('Error fetching users:', err);
+            setUserError(err.message);
         }
     };
 
@@ -94,6 +111,12 @@ function AdminDashboardPage({ isDark = false, onBack, onViewSubmissions }: Admin
                             </svg>
                             Voir soumissions
                         </Button>
+                        <Button onClick={() => setShowUsers(!showUsers)} variant={showUsers ? "primary" : "outline"}>
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            {showUsers ? 'Masquer comptes' : 'Comptes étudiants'}
+                        </Button>
                         <Button onClick={() => setIsAddingNew(true)} variant="primary">
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -149,6 +172,77 @@ function AdminDashboardPage({ isDark = false, onBack, onViewSubmissions }: Admin
                         </p>
                     </div>
                 </div>
+
+                {/* Student Accounts List */}
+                {showUsers && (
+                    <div className={`rounded-2xl border-2 p-6 mb-8 ${
+                        isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-neutral-200'
+                    }`}>
+                        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                            Liste des comptes étudiants ({users.length})
+                        </h2>
+
+                        {userError ? (
+                            <div className="text-center py-8">
+                                <p className="text-red-500 mb-4">{userError}</p>
+                                <Button onClick={fetchUsers} variant="outline">Réessayer</Button>
+                            </div>
+                        ) : users.length === 0 ? (
+                            <p className={`text-center py-8 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                                Aucun compte étudiant trouvé
+                            </p>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className={`border-b ${isDark ? 'border-neutral-700' : 'border-neutral-200'}`}>
+                                            <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                Nom complet
+                                            </th>
+                                            <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                Email
+                                            </th>
+                                            <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                Téléphone
+                                            </th>
+                                            <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                Nationalité
+                                            </th>
+                                            <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                Date d'inscription
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {users.map((user, index) => (
+                                            <tr key={user.id || index} className={`border-b ${isDark ? 'border-neutral-700' : 'border-neutral-200'} hover:bg-neutral-50 dark:hover:bg-neutral-700/50`}>
+                                                <td className={`py-3 px-4 ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                    {user.firstName} {user.lastName}
+                                                </td>
+                                                <td className={`py-3 px-4 ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                    {user.email}
+                                                </td>
+                                                <td className={`py-3 px-4 ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                    {user.phone || '-'}
+                                                </td>
+                                                <td className={`py-3 px-4 ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                                                    {user.nationality || '-'}
+                                                </td>
+                                                <td className={`py-3 px-4 ${isDark ? 'text-neutral-400' : 'text-neutral-500'} text-sm`}>
+                                                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    }) : '-'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Questions List */}
                 <div className={`rounded-2xl border-2 p-6 ${

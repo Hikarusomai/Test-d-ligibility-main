@@ -46,9 +46,9 @@ function RegisterModal({
         e.preventDefault();
         setError('');
 
-        // Validation
-        if (!formData.email || !formData.password) {
-            setError(t('auth.emailRequired'));
+        // Validation - all fields required
+        if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.phone || !formData.nationality) {
+            setError(t('auth.requiredField'));
             return;
         }
 
@@ -59,6 +59,12 @@ function RegisterModal({
 
         if (formData.password !== formData.confirmPassword) {
             setError(t('auth.passwordsMismatch'));
+            return;
+        }
+
+        // Validate phone format (basic check)
+        if (!/^\+?[\d\s-]{8,}$/.test(formData.phone)) {
+            setError(t('auth.invalidPhone'));
             return;
         }
 
@@ -175,12 +181,13 @@ function RegisterModal({
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                {t('auth.firstNameLabel')}
+                                {t('auth.firstNameLabel')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 id="firstName"
                                 name="firstName"
                                 type="text"
+                                required
                                 value={formData.firstName}
                                 onChange={handleChange}
                                 placeholder={t('auth.firstNamePlaceholder')}
@@ -199,12 +206,13 @@ function RegisterModal({
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                {t('auth.lastNameLabel')}
+                                {t('auth.lastNameLabel')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 id="lastName"
                                 name="lastName"
                                 type="text"
+                                required
                                 value={formData.lastName}
                                 onChange={handleChange}
                                 placeholder={t('auth.lastNamePlaceholder')}
@@ -252,12 +260,13 @@ function RegisterModal({
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                {t('auth.phoneLabel')}
+                                {t('auth.phoneLabel')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 id="phone"
                                 name="phone"
                                 type="tel"
+                                required
                                 value={formData.phone}
                                 onChange={handleChange}
                                 placeholder={t('auth.phonePlaceholder')}
@@ -276,12 +285,13 @@ function RegisterModal({
                                     isDark ? 'text-neutral-300' : 'text-neutral-700'
                                 }`}
                             >
-                                {t('auth.nationalityLabel')}
+                                {t('auth.nationalityLabel')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 id="nationality"
                                 name="nationality"
                                 type="text"
+                                required
                                 value={formData.nationality}
                                 onChange={handleChange}
                                 placeholder={t('auth.nationalityPlaceholder')}

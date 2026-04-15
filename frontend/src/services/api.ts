@@ -527,6 +527,35 @@ class ApiService {
             throw error;
         }
     }
+
+    async getAllUsers(): Promise<{ success: boolean; count: number; users: User[] }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/users/users`;
+            console.log('📡 Fetching users from:', url);
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            console.log('📥 Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error response:', errorText);
+                throw new Error('Erreur lors de la récupération des utilisateurs');
+            }
+
+            const data = await response.json();
+            console.log('✅ Users data:', data);
+            return data;
+        } catch (error: any) {
+            console.error('❌ Get all users error:', error);
+            throw error;
+        }
+    }
 }
 
 export const apiService = new ApiService();

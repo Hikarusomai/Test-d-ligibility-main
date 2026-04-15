@@ -157,6 +157,7 @@
     "registerError": "Erreur lors de la création du compte",
     "requiredField": "Ce champ est requis",
     "emailRequired": "Email et mot de passe requis",
+    "invalidPhone": "Veuillez entrer un numéro de téléphone valide",
     "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
     "passwordsMismatch": "Les mots de passe ne correspondent pas",
     "passwordPlaceholder": "••••••••",

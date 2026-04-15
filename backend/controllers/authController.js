@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { validateEmail } = require('../utils/emailValidator');
 
 // Configuration JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'votre_secret_jwt_super_securise';
@@ -35,11 +36,20 @@ exports.register = async (req, res) => {
     try {
         const { email, password, firstName, lastName, phone, nationality } = req.body;
 
-        // Validation
-        if (!email || !password) {
+        // Validation - all fields required
+        if (!email || !password || !firstName || !lastName || !phone || !nationality) {
             return res.status(400).json({
                 success: false,
-                message: 'Email et mot de passe requis'
+                message: 'Tous les champs sont requis'
+            });
+        }
+
+        // Validate email format and check for disposable domains
+        const emailValidation = validateEmail(email);
+        if (!emailValidation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: emailValidation.error
             });
         }
 
@@ -266,7 +276,30 @@ exports.changePassword = async (req, res) => {
         console.error('❌ Change password error:', error);
         res.status(500).json({
             success: false,
-            message: 'Erreur lors du changement de mot de passe'
+            message: 'Erreur lors du changement du mot de passe'
+        });
+    }
+};
+
+// @desc    Récupérer tous les utilisateurs (candidats)
+// @route   GET /api/auth/users
+// @access  Private/Admin
+exports.getAllUsers = async (req, res) => {
+    try {
+        console.log('🔍 getAllUsers called, user role:', req.user?.role);
+        const users = await User.find({ role: 'candidate' }).select('-password').sort({ createdAt: -1 });
+
+        console.log('📊 Found users:', users.length);
+        res.json({
+            success: true,
+            count: users.length,
+            users
+        });
+    } catch (error) {
+        console.error('❌ Get all users error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erreur lors de la récupération des utilisateurs'
         });
     }
 };
