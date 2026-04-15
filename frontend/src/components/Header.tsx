@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
@@ -9,7 +10,11 @@ type HeaderProps = {
     onToggleTheme?: () => void;
     onNavigateToDashboard?: () => void;
     onNavigateToAdmin?: () => void;
-    onNavigateToHome?: () => void; // Nouveau prop optionnel
+    onNavigateToHome?: () => void;
+    user?: User | null;
+    onLoginSuccess?: (user: User) => void;
+    onRegisterSuccess?: (user: User) => void;
+    onLogout?: () => void;
 };
 
 function Header({
@@ -17,20 +22,36 @@ function Header({
                     onToggleTheme,
                     onNavigateToDashboard,
                     onNavigateToAdmin,
-                    onNavigateToHome
+                    onNavigateToHome,
+                    user: userProp,
+                    onLoginSuccess,
+                    onRegisterSuccess,
+                    onLogout
                 }: HeaderProps) {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
+    const [userState, setUserState] = useState<User | null>(null);
+    const user = userProp !== undefined ? userProp : userState;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const { i18n, t } = useTranslation();
+    const currentLang = i18n.language || 'fr';
+
+    const toggleLanguage = async () => {
+        const newLang = currentLang === 'fr' ? 'en' : 'fr';
+        await i18n.changeLanguage(newLang);
+        localStorage.setItem('i18nextLng', newLang);
+        window.location.reload();
+    };
 
     useEffect(() => {
-        const storedUser = apiService.getStoredUser();
-        if (storedUser) {
-            setUser(storedUser);
+        if (userProp === undefined) {
+            const storedUser = apiService.getStoredUser();
+            if (storedUser) {
+                setUserState(storedUser);
+            }
         }
-    }, []);
+    }, [userProp]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -49,22 +70,34 @@ function Header({
     }, [isMenuOpen]);
 
     const handleLoginSuccess = (userData: User) => {
-        setUser(userData);
+        if (onLoginSuccess) {
+            onLoginSuccess(userData);
+        } else {
+            setUserState(userData);
+            window.location.reload();
+        }
         setIsLoginModalOpen(false);
-        window.location.reload();
     };
 
     const handleRegisterSuccess = (userData: User) => {
-        setUser(userData);
+        if (onRegisterSuccess) {
+            onRegisterSuccess(userData);
+        } else {
+            setUserState(userData);
+            window.location.reload();
+        }
         setIsRegisterModalOpen(false);
-        window.location.reload();
     };
 
     const handleLogout = () => {
         apiService.logout();
-        setUser(null);
+        if (onLogout) {
+            onLogout();
+        } else {
+            setUserState(null);
+            window.location.reload();
+        }
         setIsMenuOpen(false);
-        window.location.reload();
     };
 
     const handleLogoClick = () => {
@@ -101,17 +134,17 @@ function Header({
                             isDark ? 'text-white' : 'text-neutral-900'
                         }`}
                     >
-                        <div className="flex items-center justify-center w-10 h-10 bg-brand-primary rounded-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                        </div>
+                        <img
+                            src="https://i.ibb.co/9KF0gZW/mms-Logo.png"
+                            alt="MMS Logo"
+                            className="h-10 w-auto object-contain"
+                        />
                         <div className="text-left">
                             <h1 className="text-lg font-bold font-heading leading-tight">
-                                Test d'Éligibilité
+                                {t('header.eligibilityTest')}
                             </h1>
                             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                VISA Étudiant
+                                {t('header.studentVISA')}
                             </p>
                         </div>
                     </button>
@@ -127,6 +160,14 @@ function Header({
                                 {isDark ? '☀️' : '🌙'}
                             </button>
                         )}
+
+                        <button
+                            onClick={toggleLanguage}
+                            className="p-2.5 rounded-lg bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-all text-sm font-bold"
+                            title={currentLang === 'fr' ? 'Switch to English' : 'Passer en français'}
+                        >
+                            {currentLang === 'fr' ? 'EN' : 'FR'}
+                        </button>
 
                         {/* User Menu */}
                         {user ? (
@@ -177,7 +218,7 @@ function Header({
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
-                                                    Admin Dashboard
+                                                    {t('nav.adminDashboard')}
                                                 </button>
                                                 <hr className={isDark ? 'border-neutral-700' : 'border-neutral-200'} />
                                             </>
@@ -198,7 +239,7 @@ function Header({
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                             </svg>
-                                            Dashboard
+                                            {t('nav.dashboard')}
                                         </button>
 
                                         <hr className={isDark ? 'border-neutral-700' : 'border-neutral-200'} />
@@ -215,7 +256,7 @@ function Header({
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                             </svg>
-                                            Déconnexion
+                                            {t('nav.logout')}
                                         </button>
                                     </div>
                                 )}
@@ -226,7 +267,7 @@ function Header({
                                 size="md"
                                 variant="primary"
                             >
-                                Se connecter
+                                {t('nav.login')}
                             </Button>
                         )}
                     </div>

@@ -2,9 +2,13 @@ const express = require('express');
 const router = express.Router();
 const testController = require('../controllers/testController');
 const requireAuth = require('../middlewares/requireAuth');
+const requireAdmin = require('../middlewares/requireAdmin');
 
 // Route briefing (doit correspondre à /api/tests/briefing/:submissionId)
 router.get('/briefing/:submissionId', requireAuth, testController.generateBriefing);
+
+// Admin: Get ALL submissions
+router.get('/all', requireAuth, requireAdmin, testController.getAllSubmissions);
 
 // Routes générales
 router.post('/submit', requireAuth, testController.submitTest);

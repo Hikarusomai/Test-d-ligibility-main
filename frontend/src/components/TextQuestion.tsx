@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type TextQuestionProps = {
     onAnswer: (answer: string) => void;
@@ -17,6 +18,7 @@ function TextQuestion({
                           maxLength,
                           minLength = 1
                       }: TextQuestionProps) {
+    const { t } = useTranslation();
     const [answer, setAnswer] = useState<string>("");
 
     const handleSubmit = () => {
@@ -44,7 +46,7 @@ function TextQuestion({
             <p className={`mb-6 text-center text-lg font-bold ${
                 isDark ? 'text-neutral-200' : 'text-neutral-800'
             }`}>
-                Veuillez saisir votre réponse
+                {t('question.enterResponse')}
             </p>
 
             <div className="w-full max-w-2xl mb-6">
@@ -90,14 +92,14 @@ function TextQuestion({
                     <div className={`mt-2 text-sm text-right ${
                         isDark ? 'text-neutral-400' : 'text-neutral-600'
                     }`}>
-                        {characterCount} / {maxLength} caractères
+                        {t('question.characters', { count: characterCount, max: maxLength })}
                     </div>
                 )}
 
                 {/* Message de longueur minimale */}
                 {minLength > 1 && answer.length > 0 && answer.length < minLength && (
                     <div className="mt-2 text-sm text-red-500">
-                        Minimum {minLength} caractères requis
+                        {t('question.minCharactersRequired', { min: minLength })}
                     </div>
                 )}
             </div>
@@ -114,12 +116,12 @@ function TextQuestion({
                 }
                 `}
             >
-                Valider
+                {t('question.validate')}
             </button>
 
             {!multiline && (
                 <p className={`mt-4 text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                    Appuyez sur Entrée pour valider
+                    {t('question.pressEnter')}
                 </p>
             )}
         </div>

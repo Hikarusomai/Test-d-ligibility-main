@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +17,7 @@ interface BriefingData {
 }
 
 export default function Briefing() {
+    const { t, i18n } = useTranslation();
     const { submissionId } = useParams();
     const [briefing, setBriefing] = useState<BriefingData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function Briefing() {
             setLoading(true);
             // Utilise bien le bon endpoint backend :
             const response = await axios.get(
-                `https://hackspice-backend.onrender.com/api/tests/briefing/${submissionId}`
+                `https://hackspice-backend.onrender.com/api/tests/briefing/${submissionId}?lang=${i18n.language}`
             );
             console.log('API Briefing Response:', response.data);
             setBriefing(response.data);
@@ -40,7 +42,7 @@ export default function Briefing() {
             setError(
                 error.response?.data?.message ||
                 error.message ||
-                'Erreur de chargement du briefing'
+                t('result.errorLoadingBriefing')
             );
         } finally {
             setLoading(false);
@@ -52,8 +54,8 @@ export default function Briefing() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-lg text-gray-600">Génération de votre briefing personnalisé avec l'IA...</p>
-                    <p className="text-sm text-gray-500 mt-2">Cela peut prendre quelques secondes</p>
+                    <p className="text-lg text-gray-600">{t('result.generatingBriefing')}</p>
+                    <p className="text-sm text-gray-500 mt-2">{t('result.pleaseWait')}</p>
                 </div>
             </div>
         );
@@ -63,13 +65,13 @@ export default function Briefing() {
         return (
             <div className="max-w-7xl mx-auto p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <h2 className="text-xl font-bold text-red-800 mb-2">Erreur</h2>
+                    <h2 className="text-xl font-bold text-red-800 mb-2">{t('quiz.error')}</h2>
                     <p className="text-red-600">{error}</p>
                     <button
                         onClick={() => window.location.href = '/dashboard'}
                         className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                        Retour au Dashboard
+                        {t('result.returnDashboard')}
                     </button>
                 </div>
             </div>
@@ -80,7 +82,7 @@ export default function Briefing() {
         return (
             <div className="max-w-7xl mx-auto p-6">
                 <div className="text-center">
-                    <p>Aucune donnée disponible</p>
+                    <p>{t('result.noData')}</p>
                 </div>
             </div>
         );
@@ -102,7 +104,7 @@ export default function Briefing() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span className="font-medium">Retour au Dashboard</span>
+                    <span className="font-medium">{t('result.returnDashboard')}</span>
                 </button>
             </div>
 
@@ -125,14 +127,14 @@ export default function Briefing() {
                     {/* Briefing texte markdown */}
                     <div className="prose prose-lg max-w-none mb-8">
                         <ReactMarkdown>
-                            {briefing.briefing || 'Aucun briefing généré.'}
+                            {briefing.briefing || t('result.noBriefing')}
                         </ReactMarkdown>
                     </div>
 
                     {/* Recommandations */}
                     {briefing.recommendations && briefing.recommendations.length > 0 && (
                         <div className="mt-8">
-                            <h2 className="text-2xl font-bold mb-4">🎯 Actions recommandées</h2>
+                            <h2 className="text-2xl font-bold mb-4">{t('result.recommendedActions')}</h2>
                             <div className="space-y-4">
                                 {briefing.recommendations.map((rec, index) => (
                                     <div
@@ -174,7 +176,7 @@ export default function Briefing() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Télécharger PDF
+                            {t('common.downloadPdf')}
                         </button>
                         <button
                             onClick={fetchBriefing}
@@ -183,7 +185,7 @@ export default function Briefing() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Régénérer avec l'IA
+                            {t('result.regenerateWithAI')}
                         </button>
                     </div>
                 </div>

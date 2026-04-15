@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type MultipleChoiceQuestionProps = {
     options: string[];
@@ -23,6 +24,7 @@ function MultipleChoiceQuestion({
     allowCustomAnswer = false, // 👈 Par défaut désactivé
     customAnswerPlaceholder = "Autre (précisez)..."
 }: MultipleChoiceQuestionProps) {
+    const { t } = useTranslation();
     const [selected, setSelected] = useState<string[]>([]);
     const [customAnswer, setCustomAnswer] = useState<string>("");
     const [isCustomSelected, setIsCustomSelected] = useState<boolean>(false);
@@ -71,16 +73,16 @@ function MultipleChoiceQuestion({
             }`}>
             <p className={`mb-4 text-center text-lg font-bold ${isDark ? 'text-neutral-200' : 'text-neutral-800'
                 }`}>
-                Sélectionnez une ou plusieurs options
+                {t('question.selectMultipleOptions')}
             </p>
 
             <p className={`mb-6 text-center text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'
                 }`}>
                 {maxSelections
-                    ? `Sélectionnez entre ${minSelections} et ${maxSelections} option(s)`
-                    : `Sélectionnez au moins ${minSelections} option(s)`
+                    ? t('question.selectBetween', { min: minSelections, max: maxSelections })
+                    : t('question.selectAtLeast', { min: minSelections })
                 }
-                {totalSelected > 0 && ` • ${totalSelected} sélectionnée(s)`}
+                {totalSelected > 0 && ` • ${t('question.selectionCount', { count: totalSelected })}`}
             </p>
 
             <div className="space-y-4 w-full max-w-xl mb-6">
@@ -138,7 +140,7 @@ function MultipleChoiceQuestion({
                     })
                 ) : (
                     <p className={`text-center ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                        Aucune option
+                        {t('question.noOption')}
                     </p>
                 )}
 
@@ -177,7 +179,7 @@ function MultipleChoiceQuestion({
                                 )}
                             </div>
 
-                            <span>Autre</span>
+                            <span>{t('question.other')}</span>
                         </button>
 
                         {/* Champ de texte qui apparaît quand l'option est cochée */}
@@ -217,7 +219,7 @@ function MultipleChoiceQuestion({
                     }
                 `}
             >
-                Valider {totalSelected > 0 && `(${totalSelected})`}
+                {totalSelected > 0 ? t('question.validateCount', { count: totalSelected }) : t('question.validate')}
             </button>
         </div>
     );

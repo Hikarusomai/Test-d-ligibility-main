@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiService, type SavedTest } from '../services/api';
 import Button from '../components/Button';
 
@@ -13,6 +14,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const user = apiService.getStoredUser();
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         fetchTests();
@@ -34,20 +36,21 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
     };
 
     const handleDeleteTest = async (testId: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce test ?')) return;
+        if (!confirm(t('dashboard.deleteConfirm'))) return;
 
         try {
             await apiService.deleteTest(testId);
             setTests(tests.filter(t => t.id !== testId));
-            alert('Test supprimé avec succès');
+            alert(t('dashboard.testDeletedSuccess'));
         } catch (err: any) {
-            alert(`Erreur: ${err.message}`);
+            alert(`${t('common.error')}: ${err.message}`);
         }
     };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', {
+        const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR';
+        return date.toLocaleDateString(locale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
@@ -64,10 +67,10 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                        Mon Dashboard
+                        {t('dashboard.title')}
                     </h1>
                     <p className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
-                        Bienvenue {user?.firstName || user?.email} ! Voici l'historique de vos tests.
+                        {t('dashboard.welcome', { name: user?.firstName || user?.email })}
                     </p>
                 </div>
 
@@ -84,7 +87,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                             </div>
                             <div>
                                 <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                    Tests complétés
+                                    {t('dashboard.testsCompleted')}
                                 </p>
                                 <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                     {tests.length}
@@ -104,7 +107,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                             </div>
                             <div>
                                 <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                    Score moyen
+                                    {t('dashboard.averageScore')}
                                 </p>
                                 <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                     {tests.length > 0
@@ -127,7 +130,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                             </div>
                             <div>
                                 <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                    Destinations testées
+                                    {t('dashboard.destinationsTested')}
                                 </p>
                                 <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                     {new Set(tests.map(t => t.destinationCountry)).size}
@@ -143,7 +146,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        Nouveau test d'éligibilité
+                        {t('dashboard.startNewTest')}
                     </Button>
                 </div>
 
@@ -152,14 +155,14 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                     isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-neutral-200'
                 }`}>
                     <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                        Historique des tests
+                        {t('dashboard.testHistory')}
                     </h2>
 
                     {isLoading && (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mb-4"></div>
                             <p className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
-                                Chargement...
+                                {t('dashboard.loading')}
                             </p>
                         </div>
                     )}
@@ -168,7 +171,7 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                         <div className="text-center py-12">
                             <p className="text-red-500 mb-4">{error}</p>
                             <Button onClick={fetchTests} variant="outline">
-                                Réessayer
+                                {t('common.retry')}
                             </Button>
                         </div>
                     )}
@@ -179,10 +182,10 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             <p className={`text-lg mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                Vous n'avez pas encore complété de test
+                                {t('dashboard.noTests')}
                             </p>
                             <Button onClick={onStartNewTest} variant="primary">
-                                Commencer mon premier test
+                                {t('dashboard.startFirstTest')}
                             </Button>
                         </div>
                     )}
@@ -217,10 +220,10 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                                 : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
                         }`}>
-                          {test.status === 'completed' ? 'Complété' : 'En attente'}
+                          {test.status === 'completed' ? t('dashboard.completed') : t('dashboard.pending')}
                         </span>
                                                 <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                          Score: <span className="font-bold text-brand-primary text-base">{test.score}</span>
+                          {t('dashboard.score')}: <span className="font-bold text-brand-primary text-base">{test.score}</span>
                         </span>
                                             </div>
                                         </div>
@@ -230,19 +233,19 @@ function DashboardPage({ isDark = false, onStartNewTest, onViewBriefing }: Dashb
                                                 <button
                                                     onClick={() => onViewBriefing(test)}
                                                     className="p-2 rounded-lg text-brand-primary hover:bg-brand-primary/10 transition-colors flex items-center gap-1 px-3"
-                                                    title="Voir le briefing"
+                                                    title={t('dashboard.viewBriefing')}
                                                 >
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
-                                                    <span className="text-sm font-medium">Briefing</span>
+                                                    <span className="text-sm font-medium">{t('dashboard.briefing')}</span>
                                                 </button>
                                             )}
                                             {/* Bouton supprimer */}
                                             <button
                                                 onClick={() => handleDeleteTest(test.id)}
                                                 className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                title="Supprimer"
+                                                title={t('dashboard.deleteTest')}
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

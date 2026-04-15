@@ -15,6 +15,8 @@ const questionSchema = new mongoose.Schema(
             required: true
         },
         options: [{ type: String }],
+        labelEn: { type: String },
+        optionsEn: [{ type: String }],
         weight: {
             type: Number,
             default: 1,

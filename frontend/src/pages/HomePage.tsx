@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from '../components/Button';
 import { apiService } from '../services/api';
 
@@ -10,6 +11,7 @@ type HomePageProps = {
 function HomePage({ onStartTest, isDark = false }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const handleStartTest = async () => {
     setIsLoading(true);
@@ -24,7 +26,7 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
       onStartTest();
     } catch (err) {
       console.error('Erreur lors de la connexion au backend:', err);
-      setError('Impossible de se connecter au serveur. Veuillez vérifier que le backend est démarré et réessayer.');
+      setError(t('home.connectionErrorMsg'));
       setIsLoading(false);
     }
   };
@@ -40,7 +42,7 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
           <div className="order-2 md:order-1 flex justify-center md:justify-start">
             <img 
               src="/assets/mascot.png" 
-              alt="Mascotte étudiante" 
+              alt={t('home.mascotAlt')} 
               className="w-full max-w-[300px] md:max-w-[400px] h-auto animate-fade-in"
             />
           </div>
@@ -51,14 +53,14 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
               <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span className="text-sm font-semibold text-brand-primary">Test d'Éligibilité VISA</span>
+              <span className="text-sm font-semibold text-brand-primary">{t('home.badge')}</span>
             </div>
             
             <h1 className="text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white mb-4 font-heading">
-              Testez votre éligibilité au <span className="text-brand-primary">VISA Étudiant</span>
+              {t('home.heroTitle')}
             </h1>
             <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-6">
-              Répondez à quelques questions pour découvrir si vous êtes éligible pour étudier à l'étranger
+              {t('home.heroSubtitle')}
             </p>
 
             {/* Message d'erreur */}
@@ -72,10 +74,10 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
                   </svg>
                   <div className="flex-1">
                     <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">
-                      Erreur de connexion
+                      {t('home.connectionError')}
                     </h3>
                     <p className="text-sm text-red-700 dark:text-red-300">
-                      {error}
+                      {error || t('home.connectionErrorMsg')}
                     </p>
                   </div>
                 </div>
@@ -96,10 +98,10 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Connexion...
+                    {t('home.connecting')}
                   </>
                 ) : (
-                  'Commencer le test'
+                  t('home.startTest')
                 )}
               </Button>
             </div>
@@ -115,10 +117,10 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-              46 Pays d'Origine
+              {t('home.feature1Title')}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              MENA, Afrique et Asie - Test adapté selon votre pays
+              {t('home.feature1Desc')}
             </p>
           </div>
 
@@ -129,10 +131,10 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-              19 Destinations
+              {t('home.feature2Title')}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Europe, Amérique, Asie - Trouvez votre université idéale
+              {t('home.feature2Desc')}
             </p>
           </div>
 
@@ -143,10 +145,10 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-              Critères Réglementaires
+              {t('home.feature3Title')}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Basé sur les exigences VISA selon votre nationalité
+              {t('home.feature3Desc')}
             </p>
           </div>
         </div>
@@ -154,29 +156,29 @@ function HomePage({ onStartTest, isDark = false }: HomePageProps) {
         {/* CTA Section */}
         <div className="mt-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl p-8 text-center text-white shadow-xl">
           <h2 className="text-3xl font-bold mb-4">
-            Commencez votre projet d'études à l'étranger
+            {t('home.ctaTitle')}
           </h2>
           <p className="text-lg text-white/90 mb-6">
-            Répondez à quelques questions simples pour connaître votre éligibilité
+            {t('home.ctaSubtitle')}
           </p>
           <div className="flex items-center justify-center gap-6 text-sm flex-wrap">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              <span>Confidentiel et sécurisé</span>
+              <span>{t('home.confidential')}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>5 minutes seulement</span>
+              <span>{t('home.fast')}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Résultats immédiats</span>
+              <span>{t('home.instantResults')}</span>
             </div>
           </div>
         </div>

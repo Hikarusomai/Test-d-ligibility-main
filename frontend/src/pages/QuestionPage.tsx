@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import SingleChoiceQuestion from '../components/SingleChoiceQuestion';
 import MultipleChoiceQuestion from '../components/MultipleChoiceQuestion';
 import TextQuestion from '../components/TextQuestion';
@@ -30,6 +31,8 @@ function QuestionPage({
     const [isExiting, setIsExiting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
+    const { t, i18n } = useTranslation();
+    const isEn = i18n.language === 'en';
     const [totalQuestions, setTotalQuestions] = useState(propTotalQuestions);
 
     useEffect(() => {
@@ -55,12 +58,12 @@ function QuestionPage({
         try {
             const data = await apiService.getQuestionByOrder(order);
             if (!data) {
-                setError(`Question ${order} non trouvée`);
+                setError(t('quiz.nonTrouvee', { order }));
             } else {
                 setQuestion(data);
             }
         } catch (err: any) {
-            setError(err.message || 'Erreur chargement question');
+            setError(err.message || t('quiz.erreurChargement'));
         } finally {
             setIsLoading(false);
         }
@@ -82,8 +85,8 @@ function QuestionPage({
         }, 700);
     };
 
-    const questionTitle = question?.label || question?.text || '';
-    const questionDescription = question?.description || '';
+    const questionTitle = i18n.language === 'en' && question?.labelEn ? question.labelEn : (question?.label || question?.text || '');
+    const questionDescription = i18n.language === 'en' && question?.descriptionEn ? question.descriptionEn : (question?.description || '');
     const currentQuestionOrder = question?.order ?? questionOrder ?? 1;
     const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
     const translateClass = exitDirection === 'left' ? '-translate-x-full' : 'translate-x-full';
@@ -97,14 +100,14 @@ function QuestionPage({
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Revenir en arrière
+                            {t('quiz.backButton')}
                         </Button>
                     </div>
 
                     <div className="mb-8">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Question {currentQuestionOrder} sur {totalQuestions}
+                                {t('quiz.questionProgress', { current: currentQuestionOrder, total: totalQuestions })}
                             </span>
                             <span className="text-sm font-medium text-brand-primary">
                                 {progressPercentage}%
@@ -123,7 +126,7 @@ function QuestionPage({
                     {isLoading && !error && (
                         <div className="flex flex-col items-center justify-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mb-4"></div>
-                            <p className="text-neutral-600 dark:text-neutral-400">Chargement de la question...</p>
+                            <p className="text-neutral-600 dark:text-neutral-400">{t('common.loadingQuestion')}</p>
                         </div>
                     )}
 
@@ -134,14 +137,14 @@ function QuestionPage({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">Erreur</h3>
+                                    <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">{t('quiz.error')}</h3>
                                     <p className="text-red-700 dark:text-red-300 mb-3">{error}</p>
                                     <div className="flex gap-3">
                                         <Button onClick={() => fetchTheQuestion(currentQuestionOrder)} variant="outline" size="sm">
-                                            Réessayer
+                                            {t('common.retry')}
                                         </Button>
                                         <Button onClick={handleBackClick} variant="ghost" size="sm">
-                                            Retour à l'accueil
+                                            {t('quiz.returnHome')}
                                         </Button>
                                     </div>
                                 </div>
@@ -168,7 +171,7 @@ function QuestionPage({
                         <>
                             {question.type === "single_choice" && (
                                 <SingleChoiceQuestion
-                                    options={Array.isArray(question.options) ? question.options : []}
+                                    options={(isEn && question.optionsEn) ? question.optionsEn : (question.options ?? [])}
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
                                 />
@@ -176,13 +179,13 @@ function QuestionPage({
 
                             {(question.type === "multi_choice") && (
                                 <MultipleChoiceQuestion
-                                    options={Array.isArray(question.options) ? question.options : []}
+                                    options={(isEn && question.optionsEn) ? question.optionsEn : (question.options ?? [])}
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
                                     minSelections={question.minSelections ?? 1}
                                     maxSelections={question.maxSelections}
                                     allowCustomAnswer={question.allowCustomAnswer ?? false}
-                                    customAnswerPlaceholder={question.customAnswerPlaceholder ?? "Autre (précisez)..."}
+                                    customAnswerPlaceholder={question.customAnswerPlaceholder ?? (isEn ? "Other (specify)..." : "Autre (précisez)...")}
                                 />
                             )}
 
@@ -190,7 +193,7 @@ function QuestionPage({
                                 <TextQuestion
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
-                                    placeholder={question.placeholder ?? "Votre réponse..."}
+                                    placeholder={question.placeholder ?? t('question.textPlaceholder')}
                                     multiline={question.multiline ?? false}
                                     maxLength={question.maxLength}
                                     minLength={question.minLength ?? 1}
@@ -201,7 +204,7 @@ function QuestionPage({
                                 <NumberQuestion
                                     onAnswer={handleAnswerInternal}
                                     isDark={isDark}
-                                    placeholder={question.placeholder ?? "Entrez un nombre..."}
+                                    placeholder={question.placeholder ?? t('question.enterNumberFallback')}
                                     min={question.min}
                                     max={question.max}
                                     unit={question.unit}
@@ -218,7 +221,7 @@ function QuestionPage({
                                                 : 'border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-brand-primary hover:text-white hover:border-brand-primary'
                                         }`}
                                     >
-                                        Oui
+                                        {t('common.yes')}
                                     </button>
                                     <button
                                         onClick={() => handleAnswerInternal(false)}
@@ -228,7 +231,7 @@ function QuestionPage({
                                                 : 'border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-brand-primary hover:text-neutral-400 hover:border-brand-primary'
                                         }`}
                                     >
-                                        Non
+                                        {t('common.no')}
                                     </button>
                                 </div>
                             )}

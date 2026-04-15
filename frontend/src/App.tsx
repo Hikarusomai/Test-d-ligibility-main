@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import OriginCountryPage from './pages/OriginCountryPage';
@@ -6,13 +7,16 @@ import DestinationCountryPage from './pages/DestinationCountryPage';
 import QuestionPage from './pages/QuestionPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import { apiService } from './services/api';
+import AdminSubmissionsPage from './pages/AdminSubmissionsPage';
+import { apiService, type User } from './services/api';
 import ChatbotWidget from './components/ChatbotWidget';
 import { marked } from 'marked';
 import { ORIGIN_COUNTRIES } from './data/origin-countries';
 import { DESTINATION_COUNTRIES } from './data/destination-countries';
+import LoginModal from './components/LoginModal';
+import RegisterModal from './components/RegisterModal';
 
-type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'briefing';
+type Page = 'home' | 'origin' | 'destination' | 'questions' | 'result' | 'dashboard' | 'admin' | 'admin-submissions' | 'briefing';
 
 function App() {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -27,9 +31,13 @@ function App() {
     const [submitError, setSubmitError] = useState<string>('');
     const [gatingResult, setGatingResult] = useState<{ reason: string } | null>(null);
     const [selectedTest, setSelectedTest] = useState<any>(null);
-    const [user, setUser] = useState<{ id: string } | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [allQuestions, setAllQuestions] = useState<any[]>([]);
     const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [isAuthRequired, setIsAuthRequired] = useState(false);
+    const { t, i18n } = useTranslation();
 
     const fetchTotalQuestions = async () => {
         try {
@@ -95,6 +103,31 @@ function App() {
         setCurrentPage('briefing');
     };
 
+    const handleLoginSuccess = (userData: User) => {
+        setUser(userData);
+        setIsLoginModalOpen(false);
+        if (isAuthRequired) {
+            setIsAuthRequired(false);
+            setCurrentPage('questions');
+            setCurrentQuestionOrder(3);
+        }
+    };
+
+    const handleRegisterSuccess = (userData: User) => {
+        setUser(userData);
+        setIsRegisterModalOpen(false);
+        if (isAuthRequired) {
+            setIsAuthRequired(false);
+            setCurrentPage('questions');
+            setCurrentQuestionOrder(3);
+        }
+    };
+
+    const handleLogout = () => {
+        setUser(null);
+        setCurrentPage('home');
+    };
+
     const handleOriginSelect = (country: string) => {
         setOriginCountry(country);
         setAnswers(prev => ({ ...prev, 1: country }));
@@ -104,6 +137,13 @@ function App() {
     const handleDestinationSelect = (destination: string) => {
         setDestinationCountry(destination);
         setAnswers(prev => ({ ...prev, 2: destination }));
+        
+        if (!apiService.isAuthenticated()) {
+            setIsAuthRequired(true);
+            setIsRegisterModalOpen(true);
+            return;
+        }
+
         setCurrentPage('questions');
         setCurrentQuestionOrder(3);
     };
@@ -130,7 +170,7 @@ function App() {
             if (currentQuestion && gatingChecks[currentQuestion.key]) {
                 const gatingValue = gatingChecks[currentQuestion.key];
                 if (String(gatingValue).toLowerCase() === String(answer).toLowerCase()) {
-                    setGatingResult({ reason: "Votre profil présente un point bloquant majeur pour l'obtention d'un visa." });
+                    setGatingResult({ reason: t('gating.notEligibleReason') });
                     setCurrentPage('result');
                     setIsProcessingAnswer(false);
                     return;
@@ -152,8 +192,24 @@ function App() {
                 if (q.conditionalDisplay) {
                     const dependsOnQuestion = questions.find(dq => dq.key === q.conditionalDisplay?.dependsOn);
                     if (dependsOnQuestion) {
-                        const previousAnswer = updatedAnswers[dependsOnQuestion.order];
-                        if (String(previousAnswer).toLowerCase() !== String(q.conditionalDisplay.showWhen).toLowerCase()) {
+                        const previousAnswer = String(updatedAnswers[dependsOnQuestion.order] || '').toLowerCase();
+                        const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
+                        // Check if answer is in English and showWhen is French (or vice versa) and they represent same choice
+                        const answerHasYes = previousAnswer.includes('yes') || previousAnswer.includes('oui');
+                        const answerHasNo = previousAnswer.includes('no') || previousAnswer.includes('non');
+                        const showWhenHasYes = showWhen.includes('yes') || showWhen.includes('oui');
+                        const showWhenHasNo = showWhen.includes('no') || showWhen.includes('non');
+                        // Cross-language match: both have "yes"/"oui" and neither has "no", OR both have "no" and neither has "yes"
+                        const crossLangMatch = (answerHasYes && showWhenHasYes && !answerHasNo && !showWhenHasNo)
+                            || (answerHasNo && showWhenHasNo && !answerHasYes && !showWhenHasYes);
+                        // Normalize simple Oui/Non
+                        const showWhenNorm = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                        // Standard matching
+                        const directMatch = previousAnswer === showWhenNorm
+                            || previousAnswer === showWhen
+                            || previousAnswer.includes(showWhenNorm)
+                            || showWhenNorm.includes(previousAnswer);
+                        if (!directMatch && !crossLangMatch) {
                             nextOrder++;
                             continue;
                         }
@@ -186,7 +242,7 @@ function App() {
 
         try {
             if (!apiService.isAuthenticated()) {
-                throw new Error('Vous devez être connecté pour soumettre le test');
+                throw new Error(t('auth.notConnected'));
             }
 
             const questions = allQuestions.length > 0 ? allQuestions : await apiService.getAllQuestions();
@@ -210,6 +266,7 @@ function App() {
                 originCountry: getEnglishCountryName(originCountry, ORIGIN_COUNTRIES),
                 destinationCountry: getEnglishCountryName(destinationCountry, DESTINATION_COUNTRIES),
                 answers: answersFormatted,
+                lang: i18n.language,
             });
 
             setSubmitResult(result);
@@ -241,8 +298,21 @@ function App() {
                         if (q.conditionalDisplay) {
                             const dependsOnQuestion = questions.find(dq => dq.key === q.conditionalDisplay?.dependsOn);
                             if (dependsOnQuestion) {
-                                const previousAnswer = answers[dependsOnQuestion.order];
-                                if (String(previousAnswer).toLowerCase() !== String(q.conditionalDisplay.showWhen).toLowerCase()) {
+                                const previousAnswer = String(answers[dependsOnQuestion.order] || '').toLowerCase();
+                                const showWhen = String(q.conditionalDisplay.showWhen || '').toLowerCase();
+                                // Cross-language matching for yes/no values
+                                const answerHasYes = previousAnswer.includes('yes') || previousAnswer.includes('oui');
+                                const answerHasNo = previousAnswer.includes('no') || previousAnswer.includes('non');
+                                const showWhenHasYes = showWhen.includes('yes') || showWhen.includes('oui');
+                                const showWhenHasNo = showWhen.includes('no') || showWhen.includes('non');
+                                const crossLangMatch = (answerHasYes && showWhenHasYes && !answerHasNo && !showWhenHasNo)
+                                    || (answerHasNo && showWhenHasNo && !answerHasYes && !showWhenHasYes);
+                                const showWhenNorm = showWhen === 'oui' ? 'yes' : showWhen === 'non' ? 'no' : showWhen;
+                                const directMatch = previousAnswer === showWhenNorm
+                                    || previousAnswer === showWhen
+                                    || previousAnswer.includes(showWhenNorm)
+                                    || showWhenNorm.includes(previousAnswer);
+                                if (!directMatch && !crossLangMatch) {
                                     prevOrder--;
                                     continue;
                                 }
@@ -284,7 +354,7 @@ function App() {
                     className={`px-6 py-3 border-2 border-brand-primary text-brand-primary rounded-lg hover:bg-brand-primary/5 transition-colors font-medium ${isDark ? 'bg-transparent' : 'bg-white'
                         }`}
                 >
-                    Retour
+                    {t('common.back')}
                 </button>
             </div>
 
@@ -298,10 +368,10 @@ function App() {
                             </svg>
                         </div>
                         <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
-                            Votre Briefing Personnalisé
+                            {t('result.yourBriefing')}
                         </h1>
                         <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">
-                            Analyse complète de votre éligibilité
+                            {t('result.analysisComplete')}
                         </p>
 
                         <div className="inline-block">
@@ -310,7 +380,7 @@ function App() {
                                 <span className="text-3xl text-neutral-400">/100</span>
                             </div>
                             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                Score d'éligibilité
+                                {t('result.eligibilityScore')}
                             </p>
                         </div>
                     </div>
@@ -320,7 +390,7 @@ function App() {
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    🌍 Pays d'origine
+                                    🌍 {t('result.originCountry')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {data.originCountry}
@@ -328,7 +398,7 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    🎯 Destination
+                                    🎯 {t('result.destination')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {data.destinationCountry}
@@ -336,7 +406,7 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    📊 Questions répondues
+                                    📊 {t('result.questionsAnswered')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
                                     {totalQuestions}/{totalQuestions}
@@ -344,10 +414,10 @@ function App() {
                             </div>
                             <div>
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
-                                    📅 Date
+                                    📅 {t('result.date')}
                                 </p>
                                 <p className="font-bold text-xl text-neutral-900 dark:text-white">
-                                    {new Date(data.completedAt).toLocaleDateString('fr-FR')}
+                                    {new Date(data.completedAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
                                 </p>
                             </div>
                         </div>
@@ -359,7 +429,7 @@ function App() {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Analyse de votre profil
+                            {t('result.profileAnalysis')}
                         </h2>
                         <div className="space-y-4">
                             <div className="prose max-w-none text-blue-900 dark:text-blue-100"
@@ -367,9 +437,10 @@ function App() {
                         </div>
                     </div>
 
+                    {!data.briefing && (
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
-                            🎯 Actions recommandées
+                            {t('result.recommendedActions')}
                         </h2>
                         <div className="space-y-4">
                             {data.score >= 80 ? (
@@ -378,9 +449,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">✅</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Excellent profil !</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.excellentProfile')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Préparez votre dossier complet et soumettez votre demande de visa dès que possible.
+                                                    {t('result.excellentProfileDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -389,9 +460,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📄</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Documents requis</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.documentsRequired')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Rassemblez tous les documents : diplômes, relevés bancaires, lettre d'admission, certificats de langue.
+                                                    {t('result.documentsRequiredDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -400,9 +471,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🏛️</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Rendez-vous consulaire</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.consularAppointment')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Prenez rendez-vous au consulat dès maintenant pour éviter les délais d'attente.
+                                                    {t('result.consularAppointmentDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -414,9 +485,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🟡</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Profil prometteur</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.promisingProfile')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Améliorez votre niveau de langue (IELTS/TOEFL/DELF) et préparez une lettre de motivation convaincante.
+                                                    {t('result.promisingProfileDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -425,9 +496,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">💰</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Preuves financières</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.financialProof')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Préparez des preuves solides de financement (relevés bancaires, bourses, garants).
+                                                    {t('result.financialProofDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -436,9 +507,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📝</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Projet d'études</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.studyPlan')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Clarifiez votre projet professionnel et sa cohérence avec le programme choisi.
+                                                    {t('result.studyPlanDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -450,9 +521,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">🔴</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Dossier à renforcer</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.dossierToStrengthen')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Travaillez sur vos qualifications académiques et linguistiques avant de postuler.
+                                                    {t('result.dossierToStrengthenDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -461,9 +532,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">📚</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Formation préparatoire</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.preparatoryTraining')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Suivez une formation préparatoire ou des cours intensifs de langue pour augmenter vos chances.
+                                                    {t('result.preparatoryTrainingDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -472,9 +543,9 @@ function App() {
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl">👨‍🎓</span>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">Conseiller en orientation</p>
+                                                <p className="font-semibold text-neutral-900 dark:text-white text-lg mb-1">{t('result.advisor')}</p>
                                                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                                                    → Consultez un conseiller spécialisé pour construire un dossier solide.
+                                                    {t('result.advisorDesc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -483,6 +554,7 @@ function App() {
                             )}
                         </div>
                     </div>
+                    )}
 
                     {/* Boutons d'action */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -493,13 +565,13 @@ function App() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Télécharger PDF
+                            {t('common.downloadPdf')}
                         </button>
                         <button
                             onClick={handleRestart}
                             className="px-8 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                         >
-                            Nouveau test
+                            {t('common.newTest')}
                         </button>
                     </div>
                 </div>
@@ -515,6 +587,10 @@ function App() {
                     onToggleTheme={() => setIsDark(!isDark)}
                     onNavigateToDashboard={handleNavigateToDashboard}
                     onNavigateToAdmin={handleNavigateToAdmin}
+                    user={user}
+                    onLoginSuccess={handleLoginSuccess}
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onLogout={handleLogout}
                 />
 
                 {currentPage === 'home' && (
@@ -533,6 +609,14 @@ function App() {
                     <AdminDashboardPage
                         isDark={isDark}
                         onBack={() => setCurrentPage('dashboard')}
+                        onViewSubmissions={() => setCurrentPage('admin-submissions')}
+                    />
+                )}
+
+                {currentPage === 'admin-submissions' && (
+                    <AdminSubmissionsPage
+                        isDark={isDark}
+                        onBack={() => setCurrentPage('admin')}
                     />
                 )}
 
@@ -597,7 +681,7 @@ function App() {
                                         </svg>
                                     </div>
                                     <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
-                                        Profil non éligible
+                                        {t('gating.notEligible')}
                                     </h2>
                                     <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">
                                         {gatingResult.reason}
@@ -606,7 +690,7 @@ function App() {
                                         onClick={handleRestart}
                                         className="px-8 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                                     >
-                                        Recommencer le test
+                                        {t('gating.restartTest')}
                                     </button>
                                 </div>
                             ) : (isSubmitting || isProcessingAnswer) ? (
@@ -615,10 +699,10 @@ function App() {
                                     <h2
                                         className="text-3xl font-bold text-neutral-900 dark:text-white mb-4"
                                     >
-                                        {isProcessingAnswer ? "Analyse de votre réponse..." : "Génération de votre briefing..."}
+                                        {isProcessingAnswer ? t('quiz.analyzing') : t('quiz.submitting')}
                                     </h2>
                                     <p className="text-lg text-neutral-600 dark:text-neutral-400">
-                                        Veuillez patienter quelques instants
+                                        {t('quiz.pleaseWait')}
                                     </p>
                                 </div>
                             ) : null}
@@ -643,7 +727,7 @@ function App() {
                                     <h2
                                         className="text-3xl font-bold text-neutral-900 dark:text-white mb-4"
                                     >
-                                        Erreur
+                                        {t('quiz.error')}
                                     </h2>
                                     <p className="text-lg text-red-600 dark:text-red-400 mb-6">
                                         {submitError}
@@ -652,7 +736,7 @@ function App() {
                                         onClick={() => submitTest(answers)}
                                         className="px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-semibold"
                                     >
-                                        Réessayer
+                                        {t('common.retry')}
                                     </button>
                                 </div>
                             )}
@@ -660,6 +744,36 @@ function App() {
                     </div>
                 )}
                 <ChatbotWidget isDark={isDark} />
+
+                <LoginModal
+                    isOpen={isLoginModalOpen}
+                    onClose={() => {
+                        setIsLoginModalOpen(false);
+                        setIsAuthRequired(false);
+                    }}
+                    onLoginSuccess={handleLoginSuccess}
+                    onSwitchToRegister={() => {
+                        setIsLoginModalOpen(false);
+                        setIsRegisterModalOpen(true);
+                    }}
+                    isDark={isDark}
+                    isClosable={!isAuthRequired}
+                />
+
+                <RegisterModal
+                    isOpen={isRegisterModalOpen}
+                    onClose={() => {
+                        setIsRegisterModalOpen(false);
+                        setIsAuthRequired(false);
+                    }}
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onSwitchToLogin={() => {
+                        setIsRegisterModalOpen(false);
+                        setIsLoginModalOpen(true);
+                    }}
+                    isDark={isDark}
+                    isClosable={!isAuthRequired}
+                />
             </div>
         </div>
     );

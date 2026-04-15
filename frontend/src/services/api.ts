@@ -20,15 +20,19 @@ export type QuestionType = 'number' | 'boolean' | 'single_choice' | 'multi_choic
 export interface Question {
     _id: string;
     label?: string;
+    labelEn?: string;
     text?: string;
+    textEn?: string;
     key: string;
     category: string;
     type: QuestionType;
     options?: string[];
+    optionsEn?: string[];
     weight: number;
     isRequired: boolean;
     order: number;
     description?: string;
+    descriptionEn?: string;
     required?: boolean;
     minSelections?: number;
     maxSelections?: number;
@@ -86,6 +90,7 @@ export interface TestSubmission {
     originCountry: string;
     destinationCountry: string;
     answers: Record<string, any>;
+    lang?: string;
 }
 
 export interface TestResponse {
@@ -107,6 +112,7 @@ export interface SavedTest {
     answers: Record<string, any>;
     score: number;
     status: string;
+    briefing?: string;
     completedAt: string;
     createdAt: string;
 }
@@ -500,6 +506,54 @@ class ApiService {
         } catch (error) {
             console.error(`❌ Error fetching question ${order}:`, error);
             return null;
+        }
+    }
+
+    async getAllSubmissions(): Promise<{ success: boolean; count: number; submissions: any[] }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/tests/all`;
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Erreur lors de la récupération des soumissions');
+
+            return await response.json();
+        } catch (error: any) {
+            console.error('❌ Get all submissions error:', error);
+            throw error;
+        }
+    }
+
+    async getAllUsers(): Promise<{ success: boolean; count: number; users: User[] }> {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) throw new Error('Non authentifié');
+
+            const url = `${this.baseUrl}/users/users`;
+            console.log('📡 Fetching users from:', url);
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            console.log('📥 Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error response:', errorText);
+                throw new Error('Erreur lors de la récupération des utilisateurs');
+            }
+
+            const data = await response.json();
+            console.log('✅ Users data:', data);
+            return data;
+        } catch (error: any) {
+            console.error('❌ Get all users error:', error);
+            throw error;
         }
     }
 }

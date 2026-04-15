@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 type MascotHeroProps = {
   subtitle?: string;
@@ -10,11 +11,13 @@ type MascotHeroProps = {
 
 export default function MascotHero({
   subtitle = "Étape 1/3 - Pays d'origine",
-  title = <>Testez votre éligibilité au <span className="text-brand-primary">VISA Étudiant</span></>,
+  title,
   ctaText = "Commencer",
   onCta,
   isDark = false
 }: MascotHeroProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title || <>Testez votre éligibilité au <span className="text-brand-primary">VISA Étudiant</span></>;
   return (
     <section className={`pt-20 pb-16 ${isDark ? 'bg-neutral-900' : 'bg-neutral-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-8">
@@ -27,11 +30,11 @@ export default function MascotHero({
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight text-neutral-900 dark:text-white mb-4">
-            {title}
+            {resolvedTitle}
           </h1>
 
           <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto lg:mx-0 mb-6">
-            Selon votre pays d'origine, découvrez si vous êtes éligible pour étudier à l'étranger
+            {t('home.feature3Desc')}
           </p>
 
           <div className="flex items-center justify-center lg:justify-start gap-4">

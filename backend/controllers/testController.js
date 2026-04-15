@@ -4,6 +4,47 @@ const CountryRequirement = require('../models/CountryRequirement');
 const Question = require('../models/Question');
 const { evaluateEligibility } = require('../utils/eligibilityEngine');
 
+// Translation maps for French reason strings from eligibilityEngine
+const REASONS_EN = {
+    "Moyens mensuels insuffisants.": "Insufficient monthly funds.",
+    "Sources de financement fragiles.": "Weak funding sources.",
+    "Montant sous le seuil (80%+).": "Amount below required threshold (80%+).",
+    "Montant insuffisant (60%+).": "Insufficient amount (below 60% of requirement).",
+    "Montant très insuffisant (<60%).": "Amount critically insufficient (<60% of requirement).",
+    "Refus non corrigé.": "Uncorrected visa refusal.",
+    "Ancien refus corrigé.": "Previous refusal — now corrected.",
+    "Test limite ou expiré.": "Language test borderline or expired.",
+    "Pas de preuve de langue.": "No language proof provided.",
+    "Relevés manquants.": "Missing academic transcripts.",
+    "Preuve de paiement manquante.": "Missing tuition payment proof.",
+    "Gaps non justifiés.": "Unexplained academic gaps.",
+    "Projet partiellement cohérent.": "Partially coherent study project.",
+    "Projet peu cohérent.": "Incoherent study project.",
+    "Procédure officielle non engagée.": "Official process not yet started.",
+    "Intention principale floue.": "Primary intent to study is unclear.",
+    "Garant non documenté.": "Financial guarantor not documented.",
+    "Antécédent migratoire mineur.": "Minor migration history on record.",
+    "Antécédents migratoires graves.": "Serious migration record.",
+    "Casier mineur.": "Minor criminal record.",
+    "Casier grave.": "Serious criminal record.",
+    "Pré-admission uniquement.": "Pre-admission only (no final acceptance).",
+    "Pas encore admis.": "Not yet admitted to a program.",
+};
+const HARD_FAILS_EN = {
+    "Absence d'autorisation parentale ou d'hébergement pour mineur": "Missing parental authorization or accommodation for minor",
+    "Refus de visa non corrigé": "Uncorrected visa refusal",
+    "Antécédents migratoires graves": "Serious migration record",
+    "Casier judiciaire grave": "Serious criminal record",
+    "Financement annuel insuffisant": "Insufficient annual funding",
+};
+function translateReasons(arr, lang) {
+    if (lang !== 'en') return arr;
+    return arr.map(r => REASONS_EN[r] || r);
+}
+function translateHardFails(arr, lang) {
+    if (lang !== 'en') return arr;
+    return arr.map(f => HARD_FAILS_EN[f] || f);
+}
 
 // Import corrigé du SDK Perplexity AI (CommonJS)
 const Perplexity = require('@perplexity-ai/perplexity_ai');
@@ -60,12 +101,51 @@ const submitTest = async (req, res) => {
         function escapeRegex(str) { return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
         function slugify(str) { return String(str || '').toLowerCase().trim().replace(/\s+/g, '-'); }
 
+        const lang = req.body.lang || 'fr';
+        const isEn = lang === 'en';
+
         // Génération du briefing IA synthétique
-        let briefing = 'Briefing en cours de génération...';
+        let briefing = isEn ? 'Briefing being generated...' : 'Briefing en cours de génération...';
         if (countryRequirement) {
             try {
 
-                const prompt = `
+                const prompt = isEn ? `
+You are a student visa expert for ${destinationCountry}. Your role is to analyze the provided data and give precise, personalized advice.
+
+### CANDIDATE DATA (MANDATORY USE):
+- Overall score: ${normalizedScore}/100
+- Status: ${status}
+- Blocking points: ${translateHardFails(details.hardFails, 'en').join(', ') || 'None'}
+- Points of attention: ${translateReasons(details.reasons, 'en').join(', ') || 'None'}
+
+### CANDIDATE ANSWERS:
+${JSON.stringify(answers, null, 2)}
+
+### OFFICIAL REQUIREMENTS (${destinationCountry}):
+${JSON.stringify(countryRequirement.requirements, null, 2)}
+
+### CRITICAL WRITING GUIDELINES:
+1. **BUDGET COMPARISON**: The candidate declared ${answers.Q18_first_year_amount_eur}€. The minimum required is ${countryRequirement.requirements.financial.min_annual_eur}€ (threshold for scoring is 60% = ${Math.round(countryRequirement.requirements.financial.min_annual_eur * 0.6)}€).
+   - IF THE BUDGET IS BELOW 60% OF THE MINIMUM: State this is a critical issue (visa will likely be refused).
+   - If the budget is between 60-99% of minimum: Note it as a weakness but NOT a dealbreaker.
+   - If the budget meets or exceeds the minimum: Mention it as a positive.
+2. **STRICTLY FORBIDDEN** to say you lack information.
+3. Do not recap the context. Start directly with the title "## Profile Summary".
+4. Be direct, expert and use "you" (second person).
+
+Expected structure:
+## Profile Summary
+(Synthetic analysis of score and status)
+
+## Strengths
+(List positive points with 🟢 emojis)
+
+## Areas for Improvement
+(List weaknesses with ⚠️ emojis. Start with the most critical issue based on the score and reasons provided.)
+
+## Key Recommendations
+(Practical advice with 💡 emojis)
+` : `
 Tu es un expert en visas étudiants pour ${destinationCountry}. Ton rôle est d'analyser les données fournies pour donner un conseil précis et personnalisé.
 
 ### DONNÉES DU CANDIDAT (À UTILISER IMPÉRATIVEMENT) :
@@ -81,9 +161,10 @@ ${JSON.stringify(answers, null, 2)}
 ${JSON.stringify(countryRequirement.requirements, null, 2)}
 
 ### DIRECTIVES DE RÉDACTION CRITIQUES :
-1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€. 
-   - SI LE BUDGET EST INFÉRIEUR AU MINIMUM : Tu DOIS dire que c'est un point critique et que le visa sera REFUSÉ.
-   - NE DIS JAMAIS que le budget est suffisant s'il est inférieur au minimum.
+1. **COMPARAISON BUDGET** : Le candidat a déclaré ${answers.Q18_first_year_amount_eur}€. Le minimum requis est de ${countryRequirement.requirements.financial.min_annual_eur}€ (seuil de scoring à 60% = ${Math.round(countryRequirement.requirements.financial.min_annual_eur * 0.6)}€).
+   - SI LE BUDGET EST INFÉRIEUR À 60% DU MINIMUM : Signale que c'est un point critique (visa probablement refusé).
+   - Si le budget est entre 60% et 99% du minimum : Note comme faiblesse mais PAS bloquant.
+   - Si le budget atteint ou dépasse le minimum : Mentionne comme point positif.
 2. **INTERDICTION FORMELLE** de dire que tu manques d'informations.
 3. Ne fais pas de rappel de contexte. Commence directement par le titre "## Résumé du profil".
 4. Sois direct, expert et utilise le "vous".
@@ -96,7 +177,7 @@ Structure attendue :
 (Lister les points positifs avec emojis 🟢)
 
 ## Points à améliorer
-(Lister les points faibles avec emojis ⚠️. Si le budget est insuffisant, commence par ça !)
+(Liste des points faibles avec emojis ⚠️. Commence par le point le plus critique selon le score et les raisons.)
 
 ## Recommandations clés
 (Conseils pratiques avec emojis 💡)
@@ -107,7 +188,9 @@ Structure attendue :
                     messages: [
                         {
                             role: 'system',
-                            content: 'Tu es un expert administratif spécialisé dans les visas étudiants. Tu analyses des dossiers techniques et fournis des briefings structurés sans jamais mentionner tes limitations techniques ou un manque de données.'
+                            content: isEn
+                                ? 'You are an administrative expert specializing in student visas. You analyze technical files and provide structured briefings without ever mentioning your technical limitations or lack of data.'
+                                : 'Tu es un expert administratif spécialisé dans les visas étudiants. Tu analyses des dossiers techniques et fournis des briefings structurés sans jamais mentionner tes limitations techniques ou un manque de données.'
                         },
                         { role: 'user', content: prompt }
                     ]
@@ -118,17 +201,29 @@ Structure attendue :
                 }
             } catch (aiError) {
                 console.error('❌ Erreur génération IA :', aiError.message);
-                briefing = "## Analyse indisponible\nLe briefing personnalisé n'a pas pu être généré pour le moment. Veuillez réessayer plus tard.";
+                briefing = isEn
+                    ? "## Analysis Unavailable\nThe personalized briefing could not be generated at this time. Please try again later."
+                    : "## Analyse indisponible\nLe briefing personnalisé n'a pas pu être généré pour le moment. Veuillez réessayer plus tard.";
             }
         } else {
             console.warn('Exigences pays non trouvées (nom) :', destName);
-            briefing = `## Résumé du profil
-Votre score est de **${normalizedScore}/100**. 
+            briefing = isEn ? `## Profile Summary
+Your score is **${normalizedScore}/100**.
+We could not retrieve the detailed specific requirements for **${destinationCountry}** in our current database, but here is a general analysis:
+${status === 'ELIGIBLE' ? '🟢 Your profile looks solid.' : '⚠️ Your profile needs some adjustments.'}
+${details.reasons.length > 0 ? '\n**Points to watch:**\n- ' + translateReasons(details.reasons, 'en').join('\n- ') : ''}
+💡 We recommend checking the exact amounts required on the official consulate website.`
+            : `## Résumé du profil
+Votre score est de **${normalizedScore}/100**.
 Nous n'avons pas pu récupérer les exigences spécifiques détaillées pour **${destinationCountry}** dans notre base de données actuelle, mais voici une analyse générale :
 ${status === 'ELIGIBLE' ? '🟢 Votre profil semble solide.' : '⚠️ Votre profil nécessite des ajustements.'}
 ${details.reasons.length > 0 ? '\n**Points à surveiller :**\n- ' + details.reasons.join('\n- ') : ''}
 💡 Nous vous conseillons de vérifier les montants exacts requis sur le site officiel du consulat.`;
         }
+
+        // Persist briefing to database so history can retrieve it
+        submission.briefing = briefing;
+        await submission.save();
 
         return res.status(201).json({
             success: true,
@@ -170,6 +265,7 @@ const getMyTests = async (req, res) => {
                 destinationCountry: test.destinationCountry,
                 score: test.score,
                 status: test.status,
+                briefing: test.briefing || '',
                 completedAt: test.completedAt,
                 createdAt: test.createdAt
             }))
@@ -227,6 +323,41 @@ const deleteTest = async (req, res) => {
     }
 };
 
+// Admin: Get ALL submissions
+const getAllSubmissions = async (req, res) => {
+    try {
+        const submissions = await TestSubmission.find({})
+            .sort({ createdAt: -1 })
+            .populate('userId', 'firstName lastName email phone nationality');
+
+        const result = submissions.map(s => ({
+            id: s._id,
+            user: s.userId ? {
+                id: s.userId._id,
+                firstName: s.userId.firstName || '',
+                lastName: s.userId.lastName || '',
+                email: s.userId.email || '',
+                phone: s.userId.phone || '',
+                nationality: s.userId.nationality || ''
+            } : null,
+            originCountry: s.originCountry,
+            destinationCountry: s.destinationCountry,
+            score: s.score,
+            status: s.status,
+            analysis: s.analysis || {},
+            answers: s.answers || {},
+            briefing: s.briefing || '',
+            completedAt: s.completedAt,
+            createdAt: s.createdAt
+        }));
+
+        res.json({ success: true, count: result.length, submissions: result });
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+};
+
 const generateBriefing = async (req, res) => {
     try {
         const { submissionId } = req.params;
@@ -252,9 +383,24 @@ const generateBriefing = async (req, res) => {
         function escapeRegex(str) { return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
         function slugify(str) { return String(str || '').toLowerCase().trim().replace(/\s+/g, '-'); }
 
-        const client = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
+        const lang = req.query.lang || 'fr';
+        const isEnRegen = lang === 'en';
+        const clientRegen = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
 
-        const prompt = `
+        const prompt = isEnRegen ? `
+You are an administrative expert in student visas.
+Here are the candidate's answers:
+${JSON.stringify(submission.answers, null, 2)}
+
+Here are the official requirements for the destination country (${submission.destinationCountry}):
+${JSON.stringify(countryRequirement.requirements, null, 2)}
+
+Compare each answer to each criterion and write a personalized briefing in English with:
+# Strengths
+# Weaknesses or areas for improvement
+# Precise practical recommendations
+Be concise, structured and professional.
+` : `
 Tu es un expert administratif en visa étudiant.
 Voici les réponses du candidat :
 ${JSON.stringify(submission.answers, null, 2)}
@@ -269,10 +415,15 @@ Compare chaque réponse à chaque critère et rédige un briefing personnalisé,
 Sois synthétique, structuré et professionnel.
 `;
 
-        const completion = await client.chat.completions.create({
+        const completion = await clientRegen.chat.completions.create({
             model: 'sonar-32k-online',
             messages: [
-                { role: 'system', content: 'Tu es un assistant d’orientation pour étudiants internationaux.' },
+                {
+                    role: 'system',
+                    content: isEnRegen
+                        ? 'You are an orientation assistant for international students.'
+                        : 'Tu es un assistant d\'orientation pour étudiants internationaux.'
+                },
                 { role: 'user', content: prompt }
             ]
         });
@@ -298,5 +449,6 @@ module.exports = {
     getMyTests,
     getTestById,
     deleteTest,
-    generateBriefing
+    generateBriefing,
+    getAllSubmissions
 };

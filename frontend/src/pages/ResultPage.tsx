@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiService } from '../services/api';
 import Button from '../components/Button';
 
@@ -17,6 +18,7 @@ function ResultsPage({
                          onComplete,
                          isDark = false
                      }: ResultsPageProps) {
+    const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -61,10 +63,10 @@ function ResultsPage({
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-brand-primary mb-4"></div>
                         <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                            Envoi en cours...
+                            {t('quiz.submitting')}
                         </h2>
                         <p className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
-                            Sauvegarde de vos réponses
+                            {t('result.savingAnswers')}
                         </p>
                     </div>
                 )}
@@ -77,13 +79,13 @@ function ResultsPage({
                             </svg>
                         </div>
                         <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                            Erreur
+                            {t('quiz.error')}
                         </h2>
                         <p className={`mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                             {error}
                         </p>
                         <Button onClick={submitTest} variant="primary">
-                            Réessayer
+                            {t('common.retry')}
                         </Button>
                     </div>
                 )}
@@ -96,10 +98,10 @@ function ResultsPage({
                             </svg>
                         </div>
                         <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                            Test soumis avec succès !
+                            {t('result.testSubmitted')}
                         </h2>
                         <p className={`mb-6 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                            Vos réponses ont été enregistrées
+                            {t('result.answersSaved')}
                         </p>
 
                         <div className={`rounded-xl p-6 mb-6 ${
@@ -108,7 +110,7 @@ function ResultsPage({
                             <div className="grid grid-cols-2 gap-4 text-left">
                                 <div>
                                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                        Origine
+                                        {t('result.originCountry')}
                                     </p>
                                     <p className={`font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                         {result.submission.originCountry}
@@ -116,7 +118,7 @@ function ResultsPage({
                                 </div>
                                 <div>
                                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                        Destination
+                                        {t('result.destination')}
                                     </p>
                                     <p className={`font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                         {result.submission.destinationCountry}
@@ -124,7 +126,7 @@ function ResultsPage({
                                 </div>
                                 <div>
                                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                        Score
+                                        {t('result.eligibilityScore')}
                                     </p>
                                     <p className={`font-bold text-brand-primary text-2xl`}>
                                         {result.submission.score}
@@ -132,7 +134,7 @@ function ResultsPage({
                                 </div>
                                 <div>
                                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                                        Questions répondues
+                                        {t('result.questionsAnswered')}
                                     </p>
                                     <p className={`font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                                         {Object.keys(answers).length}
@@ -142,7 +144,7 @@ function ResultsPage({
                         </div>
 
                         <Button onClick={onComplete} variant="primary" size="lg" className="w-full">
-                            Terminer
+                            {t('common.finish')}
                         </Button>
                     </div>
                 )}

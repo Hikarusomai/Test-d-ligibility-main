@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ORIGIN_COUNTRIES, getOriginCountriesByRegion } from '../data/origin-countries';
 
 type CountrySelectionProps = {
@@ -72,6 +73,7 @@ const COUNTRY_POSITIONS: Record<string, { top: number; left: number }> = {
 };
 
 function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionProps) {
+    const { t, i18n } = useTranslation();
     const [selectedRegion, setSelectedRegion] = useState<'all' | 'mena' | 'africa' | 'asia'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
@@ -116,7 +118,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                             : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300'
                     }`}
                 >
-                    Tous ({ORIGIN_COUNTRIES.length})
+                    {t('countrySelection.allCountries')} ({ORIGIN_COUNTRIES.length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('mena')}
@@ -127,7 +129,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F97316' }}></div>
-                    MENA ({getOriginCountriesByRegion('mena').length})
+                    {t('countrySelection.mena')} ({getOriginCountriesByRegion('mena').length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('africa')}
@@ -138,7 +140,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }}></div>
-                    Afrique ({getOriginCountriesByRegion('africa').length})
+                    {t('countrySelection.africa')} ({getOriginCountriesByRegion('africa').length})
                 </button>
                 <button
                     onClick={() => setSelectedRegion('asia')}
@@ -149,7 +151,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     }`}
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }}></div>
-                    Asie ({getOriginCountriesByRegion('asia').length})
+                    {t('countrySelection.asia')} ({getOriginCountriesByRegion('asia').length})
                 </button>
             </div>
 
@@ -161,7 +163,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                         {/* Image de la world map */}
                         <img
                             src="/assets/world-map.png"
-                            alt="Carte du monde"
+                            alt={t('countrySelection.carteDuMonde')}
                             className={`absolute inset-0 w-full h-full ${isDark ? 'opacity-80 brightness-90' : 'opacity-90'}`}
                             style={{ objectFit: 'contain' }}
                         />
@@ -209,7 +211,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                                     className="px-2 py-1 rounded text-xs font-semibold text-white shadow-lg"
                                                     style={{ backgroundColor: regionColor }}
                                                 >
-                                                    {country.name}
+                                                    {i18n.language === 'en' ? country.nameEn : country.name}
                                                 </div>
                                             </div>
                                         )}
@@ -234,7 +236,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                     </svg>
                     <input
                         type="text"
-                        placeholder="Rechercher un pays..."
+                        placeholder={t('countrySelection.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={`w-full pl-12 pr-4 py-3 rounded-full border-2 transition-colors ${
@@ -257,7 +259,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                 <svg className="w-16 h-16 mx-auto mb-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p className="text-neutral-500 dark:text-neutral-400">Aucun pays trouvé</p>
+                                <p className="text-neutral-500 dark:text-neutral-400">{t('countrySelection.noResults')}</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -277,8 +279,8 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                                                 style={{ backgroundColor: getRegionColor(country.region) }}
                                             />
                                             <span className="font-medium group-hover:text-brand-primary transition-colors">
-                        {country.name}
-                      </span>
+                                                {i18n.language === 'en' ? country.nameEn : country.name}
+                                            </span>
                                         </div>
                                         <span className={`text-xs px-3 py-1 rounded-full font-mono ${
                                             isDark ? 'bg-neutral-700 text-neutral-300' : 'bg-neutral-100 text-neutral-600'
@@ -293,7 +295,7 @@ function CountrySelection({ onOriginSelect, isDark = false }: CountrySelectionPr
                 </div>
 
                 <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-4">
-                    {searchFilteredCountries.length} pays disponible{searchFilteredCountries.length > 1 ? 's' : ''}
+                    {searchFilteredCountries.length > 1 ? t('countrySelection.paysDisponibles', { count: searchFilteredCountries.length }) : t('countrySelection.paysDisponible', { count: searchFilteredCountries.length })}
                 </p>
             </div>
         </div>

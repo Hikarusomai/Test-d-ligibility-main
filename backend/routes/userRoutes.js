@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getMe } = require('../controllers/authController');
+const { register, login, getMe, getAllUsers } = require('../controllers/authController');
 const {
     getAllQuestions,
     createQuestion,
@@ -16,6 +16,7 @@ const router = express.Router();
 router.post('/auth/register', register);
 router.post('/auth/login', login);
 router.get('/auth/me', requireAuth, getMe);
+router.get('/users', requireAuth, requireAdmin, getAllUsers);
 
 // Routes pour les questions
 router.get('/questions', requireAuth, getAllQuestions);

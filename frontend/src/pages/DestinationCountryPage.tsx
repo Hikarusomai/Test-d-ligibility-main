@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DESTINATION_COUNTRIES } from "../data/destination-countries";
+import { ORIGIN_COUNTRIES } from "../data/origin-countries";
 import Button from '../components/Button';
 import { apiService, type Question } from '../services/api';
 
@@ -27,6 +29,7 @@ function DestinationSelection({
     const [isLoading, setIsLoading] = useState(true);
     const [isExiting, setIsExiting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         fetchQuestion();
@@ -40,10 +43,28 @@ function DestinationSelection({
             setQuestion(data);
             setIsLoading(false);
         } catch (err) {
-            setError('Impossible de charger la question.');
+            setError(t('originCountry.errorLoading'));
             setIsLoading(false);
         }
     };
+
+    // Translate French time/unit words for English mode
+    const translateRequirement = (str: string) => {
+        if (i18n.language !== 'en') return str;
+        return str
+            .replace(/\(compte bloqué\)/gi, '(blocked account)')
+            .replace(/minimum/gi, 'minimum')
+            .replace(/\/an\b/g, '/year')
+            .replace(/\/mois\b/g, '/month')
+            .replace(/\bmois\b/g, 'months')
+            .replace(/\bsemaines?\b/g, 'weeks')
+            .replace(/\bjours?\b/g, 'days')
+            .replace(/\ban\b/g, 'year');
+    };
+
+    const originDisplayName = i18n.language === 'en'
+        ? (ORIGIN_COUNTRIES.find(c => c.name === originCountry)?.nameEn || originCountry)
+        : originCountry;
 
     const filteredCountries = DESTINATION_COUNTRIES.filter(country => {
         const matchesSearch = country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,8 +106,8 @@ function DestinationSelection({
         : null;
 
     const currentQuestionOrder = question?.order || 2;
-    const questionTitle = question?.label || question?.text || '';
-    const questionDescription = question?.description || '';
+    const questionTitle = i18n.language === 'en' && question?.labelEn ? question.labelEn : (question?.label || question?.text || '');
+    const questionDescription = i18n.language === 'en' && question?.descriptionEn ? question.descriptionEn : (question?.description || '');
     const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
 
     return (
@@ -106,7 +127,7 @@ function DestinationSelection({
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Revenir en arrière
+                            {t('quiz.backButton')}
                         </Button>
                     </div>
 
@@ -114,7 +135,7 @@ function DestinationSelection({
                     <div className="mb-8">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Question {currentQuestionOrder} sur {totalQuestions}
+                                {t('quiz.questionProgress', { current: currentQuestionOrder, total: totalQuestions })}
                             </span>
                             <span className="text-sm font-medium text-brand-primary">
                                 {progressPercentage}%
@@ -135,7 +156,7 @@ function DestinationSelection({
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mb-4"></div>
                             <p className="text-neutral-600 dark:text-neutral-400">
-                                Chargement de la question...
+                                {t('common.loadingQuestion')}
                             </p>
                         </div>
                     )}
@@ -150,7 +171,7 @@ function DestinationSelection({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">Erreur</h3>
+                                    <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">{t('quiz.error')}</h3>
                                     <p className="text-red-700 dark:text-red-300 mb-3">{error}</p>
                                     <div className="flex gap-3">
                                         <Button
@@ -158,14 +179,14 @@ function DestinationSelection({
                                             variant="outline"
                                             size="sm"
                                         >
-                                            Réessayer
+                                            {t('common.retry')}
                                         </Button>
                                         <Button
                                             onClick={onBack}
                                             variant="ghost"
                                             size="sm"
                                         >
-                                            Retour à l'accueil
+                                            {t('quiz.returnHome')}
                                         </Button>
                                     </div>
                                 </div>
@@ -196,12 +217,12 @@ function DestinationSelection({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span className="font-semibold text-brand-primary">{originCountry}</span>
+                                    <span className="font-semibold text-brand-primary">{originDisplayName}</span>
                                 </div>
                                 <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
-                                <span className="text-neutral-500">Destination</span>
+                                <span className="text-neutral-500">{t('result.destination')}</span>
                             </div>
 
                             {/* Search Bar and Region Filter */}
@@ -210,7 +231,7 @@ function DestinationSelection({
                                     <div className="relative mb-6">
                                         <input
                                             type="text"
-                                            placeholder="Rechercher un pays..."
+                                            placeholder={t('countrySelection.searchPlaceholder')}
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             className="w-full px-4 py-3 pl-12 rounded-lg border bg-white border-neutral-300 text-neutral-900 placeholder-neutral-500 focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
@@ -231,15 +252,15 @@ function DestinationSelection({
                                                         : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                                                 }`}
                                             >
-                                                {region === 'all' ? `Tous les pays (${regionCounts.all})`
-                                                    : region === 'north-america' ? `Amérique & Océanie (${regionCounts['north-america']})`
-                                                        : region === 'europe' ? `Europe (${regionCounts.europe})`
-                                                            : `Asie (${regionCounts.asia})`}
+                                                {region === 'all' ? `${t('countrySelection.allRegions')} (${regionCounts.all})`
+                                                    : region === 'north-america' ? `${t('countrySelection.northAmerica')} (${regionCounts['north-america']})`
+                                                        : region === 'europe' ? `${t('countrySelection.europe')} (${regionCounts.europe})`
+                                                            : `${t('countrySelection.asiaRegion')} (${regionCounts.asia})`}
                                             </button>
                                         ))}
                                     </div>
                                     <p className="mb-4 text-sm text-neutral-600">
-                                        {filteredCountries.length} destination{filteredCountries.length > 1 ? 's' : ''} disponible{filteredCountries.length > 1 ? 's' : ''} :
+                                        {filteredCountries.length} {t('countrySelection.destinationsDisponibles')} :
                                     </p>
                                 </>
                             )}
@@ -253,10 +274,10 @@ function DestinationSelection({
                                         </svg>
                                         <div className="flex-1">
                                             <p className="font-semibold text-green-800">
-                                                Destination sélectionnée : {selectedCountryData.flag} {selectedCountry}
+                                                {t('countrySelection.destinationSelected')} {selectedCountryData.flag} {selectedCountry}
                                             </p>
                                             <p className="text-sm text-green-700">
-                                                Cliquez sur "Confirmer" pour continuer ou "Changer" pour choisir une autre destination
+                                                {t('countrySelection.clickConfirm')}
                                             </p>
                                         </div>
                                     </div>
@@ -279,7 +300,7 @@ function DestinationSelection({
                                             <div className="flex items-center gap-4">
                                                 <span className="text-5xl">{country.flag}</span>
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-neutral-900">{country.name}</h3>
+                                                    <h3 className="text-xl font-bold text-neutral-900">{i18n.language === 'en' ? country.nameEn : country.name}</h3>
                                                     <span className="text-sm px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">{country.iso3}</span>
                                                 </div>
                                             </div>
@@ -290,20 +311,20 @@ function DestinationSelection({
                                             )}
                                         </div>
                                         <span className="inline-block text-xs px-3 py-1 rounded-full mb-4 bg-blue-50 text-blue-600">
-                                            • {country.region === 'north-america' ? 'Amérique & Océanie' : country.region === 'europe' ? 'Europe' : 'Asie'}
+                                            • {country.region === 'north-america' ? t('countrySelection.northAmerica') : country.region === 'europe' ? t('countrySelection.europe') : t('countrySelection.asiaRegion')}
                                         </span>
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-3">
                                                 <svg className="w-5 h-5 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                <span className="font-medium text-neutral-600">{country.requirements.financialProof}</span>
+                                                <span className="font-medium text-neutral-600">{translateRequirement(country.requirements.financialProof)}</span>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <svg className="w-5 h-5 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                <span className="font-medium text-neutral-600">{country.requirements.processingTime}</span>
+                                                <span className="font-medium text-neutral-600">{translateRequirement(country.requirements.processingTime)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -315,7 +336,7 @@ function DestinationSelection({
                                     <svg className="w-16 h-16 mx-auto text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
-                                    <p className="text-lg text-neutral-600">Aucun pays trouvé pour "{searchTerm}"</p>
+                                    <p className="text-lg text-neutral-600">{t('countrySelection.noCountryFound', { search: searchTerm })}</p>
                                 </div>
                             )}
 
@@ -326,10 +347,10 @@ function DestinationSelection({
                                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                             </svg>
-                                            Modifier la destination
+                                            {t('countrySelection.changeDestination')}
                                         </Button>
                                         <Button onClick={handleConfirm} variant="primary" size="lg">
-                                            Confirmer la destination
+                                            {t('countrySelection.confirmDestination')}
                                             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                             </svg>
@@ -338,7 +359,7 @@ function DestinationSelection({
                                 ) : (
                                     <div className="w-full flex justify-end">
                                         <Button onClick={handleConfirm} variant="primary" size="lg" disabled={!selectedCountry}>
-                                            Sélectionnez une destination
+                                            {t('countrySelection.selectDestination')}
                                         </Button>
                                     </div>
                                 )}

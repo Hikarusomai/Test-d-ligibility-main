@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import CountrySelection from '../components/CountrySelection';
 import Button from '../components/Button';
 import { apiService, type Question } from '../services/api';
@@ -15,6 +16,8 @@ function OriginCountryPage({ onOriginSelect, onBack, isDark = false, totalQuesti
   const [question, setQuestion] = useState<Question | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
 
   useEffect(() => {
     fetchFirstQuestion();
@@ -28,7 +31,7 @@ const fetchFirstQuestion = async () => {
         setQuestion(data);
         setIsLoading(false);
     } catch (err) {
-        setError('Impossible de charger la question. Veuillez réessayer.');
+        setError(t('originCountry.errorLoading'));
         setIsLoading(false);
     }
 };
@@ -40,8 +43,8 @@ const fetchFirstQuestion = async () => {
     }, 700);
   };
 
-  const questionTitle = question?.label || question?.text || '';
-  const questionDescription = question?.description || '';
+  const questionTitle = (isEn && question?.labelEn) ? question.labelEn : (question?.label || question?.text || '');
+  const questionDescription = (isEn && question?.descriptionEn) ? question.descriptionEn : (question?.description || '');
   const currentQuestionOrder = question?.order || 1;
   const progressPercentage = Math.round((currentQuestionOrder / totalQuestions) * 100);
 
@@ -66,7 +69,7 @@ const fetchFirstQuestion = async () => {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Revenir en arrière
+              {t('quiz.backButton')}
             </Button>
           </div>
 
@@ -74,7 +77,7 @@ const fetchFirstQuestion = async () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Question {currentQuestionOrder} sur {totalQuestions}
+                {t('quiz.questionProgress', { current: currentQuestionOrder, total: totalQuestions })}
               </span>
               <span className="text-sm font-medium text-brand-primary">
                 {progressPercentage}%
@@ -95,7 +98,7 @@ const fetchFirstQuestion = async () => {
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mb-4"></div>
               <p className="text-neutral-600 dark:text-neutral-400">
-                Chargement de la question...
+                {t('common.loadingQuestion')}
               </p>
             </div>
           )}
@@ -110,7 +113,7 @@ const fetchFirstQuestion = async () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">Erreur</h3>
+                  <h3 className="font-semibold text-red-800 dark:text-red-200 mb-1">{t('quiz.error')}</h3>
                   <p className="text-red-700 dark:text-red-300 mb-3">{error}</p>
                   <div className="flex gap-3">
                     <Button
@@ -118,14 +121,14 @@ const fetchFirstQuestion = async () => {
                       variant="outline"
                       size="sm"
                     >
-                      Réessayer
+                      {t('common.retry')}
                     </Button>
                     <Button
                       onClick={onBack}
                       variant="ghost"
                       size="sm"
                     >
-                      Retour à l'accueil
+                      {t('quiz.returnHome')}
                     </Button>
                   </div>
                 </div>

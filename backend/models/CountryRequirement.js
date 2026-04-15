@@ -4,6 +4,7 @@ const countryRequirementSchema = new mongoose.Schema(
     {
         country: {
             name: { type: String, required: true },
+            nameEn: { type: String },
             iso3: { type: String },
             slug: { type: String }
         },
